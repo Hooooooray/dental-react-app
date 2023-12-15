@@ -2,10 +2,33 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 import RouterView from "./router";
+import { ConfigProvider } from 'antd'
 
 function App() {
   return (
-    <RouterView></RouterView>
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: '#E85870',
+          colorBorderSecondary: '#EFEFEF'
+        },
+        components: {
+          Layout: {
+            bodyBg: '#fff',
+            siderBg:'#fff'
+          },
+          Tabs: {
+            cardBg: "#EFEFEF",
+            cardGutter: 2,
+            horizontalMargin: '2px 0 0 2px'
+          },
+          
+        },
+      }}
+    >
+      <RouterView></RouterView>
+    </ConfigProvider>
+
   );
 }
 

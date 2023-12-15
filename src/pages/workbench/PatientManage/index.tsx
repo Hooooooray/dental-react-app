@@ -1,9 +1,9 @@
 import React from "react";
 
-const patientManage = ()=>{
+const PatientManage = ()=>{
     return(
-        <div>patientManage</div>
+        <div>PatientManage</div>
     )
 }
 
-export default patientManage()
+export default PatientManage
