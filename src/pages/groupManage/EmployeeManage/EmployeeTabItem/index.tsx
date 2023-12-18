@@ -1,7 +1,7 @@
 import React, {useState} from "react";
-import {Button, Drawer, Layout, Space, Checkbox, Form, Input, Select, DatePicker, Row, Col, message,} from "antd";
+import {Button, Drawer, Layout, Space, Form, Input, Select, DatePicker, Row, Col, message,} from "antd";
 import {PlusOutlined} from "@ant-design/icons";
-import {addEmployee} from "../../../../api/employee";
+import {addEmployee, getMaxEmployeeID} from "../../../../api/employee";
 
 
 const EmployeeTabItem = () => {
@@ -9,7 +9,27 @@ const EmployeeTabItem = () => {
     const [employeeForm] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
 
+    const clickAddEmployee = () => {
+        setEmployeeOpen(true)
+        getMaxEmployeeID()
+            .then(response => {
+                if (response.status === 200) {
+                    console.log((response))
+                    if (response.data.data && response.data.data.employeeID) {
+                        const newID = response.data.data.employeeID + 1
+                        employeeForm.setFieldValue('employeeID', newID)
+                    } else {
+                        const newID = 1
+                        employeeForm.setFieldValue('employeeID', newID)
+                    }
+                }
+            })
+            .catch(error => {
+                console.log(error)
+            })
+    }
     const onEmployeeClose = () => {
+        employeeForm.resetFields();
         setEmployeeOpen(false);
     };
     const addDepartment = () => {
@@ -22,9 +42,26 @@ const EmployeeTabItem = () => {
         addEmployee(data)
             .then(response => {
                 console.log(response)
+                if (response.status === 200) {
+                    messageApi.open({
+                        type: 'success',
+                        content: '添加成功',
+                    });
+                    onEmployeeClose()
+                } else {
+                    messageApi.open({
+                        type: 'error',
+                        content: '添加失败',
+                    });
+
+                }
             })
             .catch(err => {
                 console.log(err)
+                messageApi.open({
+                    type: 'error',
+                    content: '添加失败',
+                });
             })
     };
 
@@ -42,7 +79,7 @@ const EmployeeTabItem = () => {
             <div style={{padding: '16px 0 0 16px'}}>
                 <Space size="large">
                     <Button icon={<PlusOutlined/>} onClick={addDepartment}>新增部门</Button>
-                    <Button icon={<PlusOutlined/>} onClick={() => setEmployeeOpen(true)}>新增员工</Button>
+                    <Button icon={<PlusOutlined/>} onClick={clickAddEmployee}>新增员工</Button>
                 </Space>
                 <Drawer size={"large"}
                         title="新增员工"
@@ -192,6 +229,24 @@ const EmployeeTabItem = () => {
                             </Col>
                         </Row>
 
+
+                        <Row>
+                            <Col span={12}>
+                                <Form.Item label="在职状态" name="employmentStatus">
+                                    <Select>
+                                        <Select.Option value="ACTIVE">在职</Select.Option>
+                                        <Select.Option value="ON_LEAVE">休假</Select.Option>
+                                        <Select.Option value="RESIGNED">离职</Select.Option>
+                                        <Select.Option value="PROBATION">试用期</Select.Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item label="家庭住址" name="address">
+                                    <Input/>
+                                </Form.Item>
+                            </Col>
+                        </Row>
 
                         <Row>
                             <Col span={12}>

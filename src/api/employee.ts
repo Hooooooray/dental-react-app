@@ -5,6 +5,10 @@ interface EmployeeType {
     name:String,
 }
 
-export const addEmployee = (data:any)=>{
+export const addEmployee = (data:EmployeeType)=>{
     return $api.post('/employee/add',data)
+}
+
+export const getMaxEmployeeID = ()=>{
+    return $api.get('/employee/maxID')
 }
