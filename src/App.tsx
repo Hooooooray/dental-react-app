@@ -1,12 +1,14 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import RouterView from "./router";
 import {ConfigProvider} from 'antd'
+import locale from 'antd/locale/zh_CN';
+import 'dayjs/locale/zh-cn';
 
 function App() {
     return (
         <ConfigProvider
+            locale={locale}
             theme={{
                 token: {
                     colorPrimary: '#E85870',
@@ -23,6 +25,10 @@ function App() {
                         cardBg: "#EFEFEF",
                         cardGutter: 2,
                         horizontalMargin: '2px 0 0 2px'
+                    },
+                    Table: {
+                        bodySortBg:"#F5F5F5",
+                        borderColor:"#ECEEF4"
                     },
                 },
             }}

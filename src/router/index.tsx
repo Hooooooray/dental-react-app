@@ -6,7 +6,6 @@ import LoginPage from "../pages/LoginPage";
 import NotFound from "../pages/NotFound";
 import IndexPage from "../pages/IndexPage";
 import GroupManageLayout from "../components/GroupManageLayout";
-import path from 'path';
 import EmployeeManage from '../pages/groupManage/EmployeeManage';
 import ProjectManage from '../pages/groupManage/ProjectManage';
 import AppointCenter from '../pages/workbench/AppointCenter';

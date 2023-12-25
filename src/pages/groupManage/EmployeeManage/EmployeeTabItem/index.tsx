@@ -1,33 +1,242 @@
-import React, {useState} from "react";
-import {Button, Drawer, Layout, Space, Form, Input, Select, DatePicker, Row, Col, message,} from "antd";
+import React, {useEffect, useState} from "react";
+import {Button, Drawer, Layout, Space, Form, Input, Select, DatePicker, Row, Col, message, Table,} from "antd";
 import {PlusOutlined} from "@ant-design/icons";
-import {addEmployee, getMaxEmployeeID} from "../../../../api/employee";
+import 'dayjs/locale/zh-cn';
+import {
+    addEmployee,
+    deleteEmployee,
+    editEmployee,
+    getEmployee,
+    getEmployees,
+    getMaxEmployeeID
+} from "../../../../api/employee";
+import type {ColumnsType} from 'antd/es/table';
+import dayjs from "dayjs";
 
 
 const EmployeeTabItem = () => {
-    const [employeeOpen, setEmployeeOpen] = useState(false)
-    const [employeeForm] = Form.useForm();
-    const [messageApi, contextHolder] = message.useMessage();
+    interface EmployeeDataType {
+        key: React.Key;
+        employeeID: number;
+        name: string;
+        position: string;
+        department: string;
+        dentalDepartment: string;
+        gender: string;
+    }
 
-    const clickAddEmployee = () => {
-        setEmployeeOpen(true)
-        getMaxEmployeeID()
+    const [employeeData, setEmployeeData] = useState<EmployeeDataType[]>([]);
+    const employeeColumns: ColumnsType<EmployeeDataType> = [
+        {
+            title: '员工号',
+            width: 90,
+            dataIndex: 'employeeID',
+            key: 'employeeID',
+        },
+        {
+            title: '姓名',
+            width: 90,
+            dataIndex: 'name',
+            key: 'name',
+        },
+        {
+            title: '岗位',
+            width: 90,
+            dataIndex: 'position',
+            key: 'position',
+        },
+        {
+            title: '部门',
+            width: 90,
+            dataIndex: 'department',
+            key: 'department',
+        },
+        {
+            title: '科室',
+            width: 90,
+            dataIndex: 'dentalDepartment',
+            key: 'dentalDepartment',
+        },
+        {
+            title: '性别',
+            width: 90,
+            dataIndex: 'gender',
+            key: 'gender',
+        },
+        {
+            title: '地址',
+            width: 180,
+            dataIndex: 'address',
+            key: 'address',
+        },
+        {
+            title: '在职状态',
+            width: 80,
+            dataIndex: 'employmentStatus',
+            key: 'employmentStatus',
+        },
+        {
+            title: '职称',
+            width: 80,
+            dataIndex: 'title',
+            key: 'title',
+        },
+        {
+            title: '手机号码',
+            width: 160,
+            dataIndex: 'phone',
+            key: 'phone',
+        },
+        {
+            title: '职业证书号',
+            width: 160,
+            dataIndex: 'professionalLicenseNo',
+            key: 'professionalLicenseNo',
+        },
+        {
+            title: '电子邮件',
+            width: 160,
+            dataIndex: 'email',
+            key: 'email',
+        },
+        {
+            title: '出生日期',
+            width: 140,
+            dataIndex: 'birthDate',
+            key: 'birthDate',
+        },
+        {
+            title: '入职日期',
+            width: 140,
+            dataIndex: 'hireDate',
+            key: 'hireDate',
+        },
+        {
+            title: '操作',
+            key: 'operation',
+            fixed: 'right',
+            render: (record) => (
+                <Space>
+                    <Button onClick={() => handleEditEmployee(record)}>编辑</Button>
+                    <Button onClick={() => handleDeleteEmployee(record)}>删除</Button>
+                </Space>
+            ),
+
+        },
+    ];
+    // 渲染列表
+    const renderEmployeeTable = () => {
+        interface Employee {
+            employeeID: number;
+            name: string;
+            position: string;
+            department: string;
+            dentalDepartment: string;
+            gender: string;
+            hireDate?: string;
+            birthDate?: string;
+        }
+
+        getEmployees()
             .then(response => {
                 if (response.status === 200) {
-                    console.log((response))
-                    if (response.data.data && response.data.data.employeeID) {
-                        const newID = response.data.data.employeeID + 1
-                        employeeForm.setFieldValue('employeeID', newID)
-                    } else {
-                        const newID = 1
-                        employeeForm.setFieldValue('employeeID', newID)
-                    }
+                    let employees = response.data.data
+                    console.log(employees)
+                    setEmployeeData(employees.map((employee: Employee) => {
+                        const formattedEmployee = {
+                            ...employee,
+                            key: employee.employeeID,
+                        };
+                        if (employee.hireDate) {
+                            formattedEmployee.hireDate = dayjs(employee.hireDate).format('YYYY年MM月DD日');
+                        }
+                        if (employee.birthDate) {
+                            formattedEmployee.birthDate = dayjs(employee.birthDate).format('YYYY年MM月DD日');
+                        }
+                        return formattedEmployee;
+                    }))
                 }
             })
             .catch(error => {
                 console.log(error)
             })
     }
+
+    useEffect(() => {
+        console.log(('effect'))
+        renderEmployeeTable()
+    }, [])
+
+    const [employeeOpen, setEmployeeOpen] = useState(false)
+    const [isEmployeeEdit, setIsEmployeeEdit] = useState(false)
+    const [employeeForm] = Form.useForm();
+    const [messageApi, contextHolder] = message.useMessage();
+
+    //点击新增员工按钮
+    const clickAddEmployee = async () => {
+        setIsEmployeeEdit(false)
+        setEmployeeOpen(true)
+        try {
+            const response = await getMaxEmployeeID();
+            console.log(response)
+            if (response.status === 200) {
+                if (response.data.data && response.data.data.employeeID) {
+                    const newID = response.data.data.employeeID + 1;
+                    employeeForm.setFieldValue('employeeID', newID);
+                } else {
+                    employeeForm.setFieldValue('employeeID', 1);
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+
+    // 点击编辑
+    const handleEditEmployee = async (record: EmployeeDataType) => {
+        setIsEmployeeEdit(true)
+        setEmployeeOpen(true)
+        let employeeID = record.employeeID
+        try {
+            const response = await getEmployee(employeeID)
+            if (response.status === 200) {
+                let oldEmployee = response.data.data
+                if (oldEmployee.birthDate) {
+                    oldEmployee.birthDate = dayjs(oldEmployee.birthDate)
+                }
+
+                if (oldEmployee.hireDate) {
+                    oldEmployee.hireDate = dayjs(oldEmployee.hireDate)
+                }
+                console.log(oldEmployee.birthDate)
+                employeeForm.setFieldsValue(oldEmployee)
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    // 处理删除员工
+    const handleDeleteEmployee = async (record: EmployeeDataType) => {
+        let employeeID = record.employeeID
+        try {
+            const response = await deleteEmployee(employeeID)
+            if (response.status === 200) {
+                renderEmployeeTable()
+                console.log('删除成功')
+            }
+        } catch (error) {
+            console.error(error);
+            messageApi.open({
+                type: 'error',
+                content: '删除失败',
+            });
+        }
+    }
+
+
+    // 取消
     const onEmployeeClose = () => {
         employeeForm.resetFields();
         setEmployeeOpen(false);
@@ -35,36 +244,54 @@ const EmployeeTabItem = () => {
     const addDepartment = () => {
         console.log('click addDepartment')
     }
-    const onEmployeeFinish = (values: object) => {
-        console.log('Success:', values);
-        const data = employeeForm.getFieldsValue()
-        data.employeeID = Number(data.employeeID)
-        addEmployee(data)
-            .then(response => {
-                console.log(response)
-                if (response.status === 200) {
+
+    // 表单确认
+    const onEmployeeFinish = async () => {
+        try {
+            const data = employeeForm.getFieldsValue();
+            data.employeeID = Number(data.employeeID);
+            if (isEmployeeEdit) {
+                const editResponse = await editEmployee(data)
+                if (editResponse.status === 200) {
+                    messageApi.open({
+                        type: 'success',
+                        content: '编辑成功',
+                    });
+                    renderEmployeeTable();
+                    onEmployeeClose();
+                } else {
+                    messageApi.open({
+                        type: 'error',
+                        content: '编辑失败',
+                    });
+                }
+            } else {
+                const addResponse = await addEmployee(data);
+                if (addResponse.status === 200) {
                     messageApi.open({
                         type: 'success',
                         content: '添加成功',
                     });
-                    onEmployeeClose()
+                    renderEmployeeTable();
+                    onEmployeeClose();
                 } else {
                     messageApi.open({
                         type: 'error',
                         content: '添加失败',
                     });
-
                 }
-            })
-            .catch(err => {
-                console.log(err)
-                messageApi.open({
-                    type: 'error',
-                    content: '添加失败',
-                });
-            })
+            }
+        } catch (err) {
+            console.error(err);
+            messageApi.open({
+                type: 'error',
+                content: '添加失败',
+            });
+        }
     };
 
+
+    // 表单确认失败
     const onEmployeeFinishFailed = (errorInfo: object) => {
         messageApi.open({
             type: 'warning',
@@ -76,13 +303,16 @@ const EmployeeTabItem = () => {
     return (
         <>
             {contextHolder}
-            <div style={{padding: '16px 0 0 16px'}}>
-                <Space size="large">
+            <div style={{padding: '16px 16px 0 16px'}}>
+                <Space size="large" style={{marginBottom: 16}}>
                     <Button icon={<PlusOutlined/>} onClick={addDepartment}>新增部门</Button>
                     <Button icon={<PlusOutlined/>} onClick={clickAddEmployee}>新增员工</Button>
                 </Space>
+                <Table size={"small"} pagination={false} bordered={true} columns={employeeColumns}
+                       dataSource={employeeData}
+                       scroll={{x: 'max-content', y: 500}}/>
                 <Drawer size={"large"}
-                        title="新增员工"
+                        title={isEmployeeEdit ? '编辑员工信息' : '新增员工'}
                         placement="right"
                         closable={false}
                         onClose={onEmployeeClose}
@@ -250,22 +480,16 @@ const EmployeeTabItem = () => {
 
                         <Row>
                             <Col span={12}>
-                                <Form.Item label="入职日期" name="hireDate">
-                                    <DatePicker/>
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
                                 <Form.Item label="出生日期" name="birthDate">
                                     <DatePicker/>
                                 </Form.Item>
                             </Col>
+                            <Col span={12}>
+                                <Form.Item label="入职日期" name="hireDate">
+                                    <DatePicker/>
+                                </Form.Item>
+                            </Col>
                         </Row>
-
-                        {/*<Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-                        <Button type="primary" htmlType="submit">
-                            Submit
-                        </Button>
-                    </Form.Item>*/}
 
                     </Form>
                 </Drawer>

@@ -1,11 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { Outlet, useNavigate,useLocation } from 'react-router-dom'
 import type { MenuProps } from 'antd';
-import { Layout, Menu, theme } from 'antd';
-import { Content } from "antd/es/layout/layout";
+import { Layout, Menu } from 'antd';
 import style from './style.module.scss'
 
-const { Header, Sider } = Layout;
+const { Header } = Layout;
 
 type MenuItem = Required<MenuProps>['items'][number];
 function getItem(

@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Layout, Menu, } from 'antd';
 import type { MenuProps } from 'antd';
 
-const { Sider, Content } = Layout;
+const { Sider } = Layout;
 type MenuItem = Required<MenuProps>['items'][number];
 function getItem(
     label: React.ReactNode,
