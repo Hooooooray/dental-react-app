@@ -26,7 +26,7 @@ function getItem(
 const items: MenuItem[] = [
     getItem('今日工作', '/index'),
     getItem('工作台', '/workbench'),
-    getItem('集团管理', '/groupManage')
+    getItem('机构管理', '/groupManage')
 ]
 
 const headerStyle: React.CSSProperties = {

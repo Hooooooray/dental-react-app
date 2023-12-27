@@ -14,7 +14,7 @@ function App() {
                     colorPrimary: '#E85870',
                     colorBorderSecondary: '#EFEFEF',
                     paddingLG:10,
-                    padding:7.5
+                    padding:7.5,
                 },
                 components: {
                     Layout: {
@@ -29,6 +29,8 @@ function App() {
                     Table: {
                         bodySortBg:"#F5F5F5",
                         borderColor:"#ECEEF4"
+                    },
+                    Modal: {
                     },
                 },
             }}

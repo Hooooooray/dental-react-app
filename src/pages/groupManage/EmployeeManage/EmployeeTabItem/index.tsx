@@ -1,6 +1,20 @@
 import React, {useEffect, useState} from "react";
-import {Button, Drawer, Layout, Space, Form, Input, Select, DatePicker, Row, Col, message, Table,} from "antd";
-import {PlusOutlined} from "@ant-design/icons";
+import {
+    Button,
+    Drawer,
+    Layout,
+    Space,
+    Form,
+    Input,
+    Select,
+    DatePicker,
+    Row,
+    Col,
+    message,
+    Table,
+    Popconfirm, Pagination,
+} from "antd";
+import {PlusOutlined, QuestionCircleOutlined} from "@ant-design/icons";
 import 'dayjs/locale/zh-cn';
 import {
     addEmployee,
@@ -118,12 +132,32 @@ const EmployeeTabItem = () => {
             render: (record) => (
                 <Space>
                     <Button onClick={() => handleEditEmployee(record)}>编辑</Button>
-                    <Button onClick={() => handleDeleteEmployee(record)}>删除</Button>
+                    {/*<Button onClick={() => handleDeleteEmployee(record)}>删除</Button>*/}
+                    <Popconfirm
+                        title="提示"
+                        description="确定要删除此员工信息？"
+                        okText="确定"
+                        cancelText="取消"
+                        placement="topRight"
+                        icon={<QuestionCircleOutlined style={{color: 'red'}}/>}
+                        onConfirm={() => handleDeleteEmployee(record)}
+                    >
+                        <Button danger>删除</Button>
+                    </Popconfirm>
                 </Space>
             ),
 
         },
     ];
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const [total, setTotal] = useState(0)
+    const [employeeOpen, setEmployeeOpen] = useState(false)
+    const [isEmployeeEdit, setIsEmployeeEdit] = useState(false)
+    const [employeeForm] = Form.useForm();
+    const [messageApi, contextHolder] = message.useMessage();
+
+
     // 渲染列表
     const renderEmployeeTable = () => {
         interface Employee {
@@ -137,11 +171,12 @@ const EmployeeTabItem = () => {
             birthDate?: string;
         }
 
-        getEmployees()
+        getEmployees(page, pageSize)
             .then(response => {
                 if (response.status === 200) {
                     let employees = response.data.data
-                    console.log(employees)
+                    setTotal(response.data.total)
+                    console.log(response.data)
                     setEmployeeData(employees.map((employee: Employee) => {
                         const formattedEmployee = {
                             ...employee,
@@ -165,12 +200,7 @@ const EmployeeTabItem = () => {
     useEffect(() => {
         console.log(('effect'))
         renderEmployeeTable()
-    }, [])
-
-    const [employeeOpen, setEmployeeOpen] = useState(false)
-    const [isEmployeeEdit, setIsEmployeeEdit] = useState(false)
-    const [employeeForm] = Form.useForm();
-    const [messageApi, contextHolder] = message.useMessage();
+    }, [page, pageSize])
 
     //点击新增员工按钮
     const clickAddEmployee = async () => {
@@ -223,8 +253,20 @@ const EmployeeTabItem = () => {
         try {
             const response = await deleteEmployee(employeeID)
             if (response.status === 200) {
-                renderEmployeeTable()
-                console.log('删除成功')
+                const newTotal = total - 1;
+                const newTotalPages = Math.ceil(newTotal / pageSize);
+
+                if (page > newTotalPages) {
+                    // 如果当前页超过了新的总页数，将页码减一
+                    setPage(newTotalPages);
+                } else {
+                    renderEmployeeTable()
+                }
+
+                messageApi.open({
+                    type: 'success',
+                    content: '删除成功',
+                });
             }
         } catch (error) {
             console.error(error);
@@ -274,11 +316,6 @@ const EmployeeTabItem = () => {
                     });
                     renderEmployeeTable();
                     onEmployeeClose();
-                } else {
-                    messageApi.open({
-                        type: 'error',
-                        content: '添加失败',
-                    });
                 }
             }
         } catch (err) {
@@ -300,6 +337,11 @@ const EmployeeTabItem = () => {
         console.log('Failed:', errorInfo);
     };
 
+
+    const handleChangePage = (page: number, pageSize: number) => {
+        setPage(page)
+        setPageSize(pageSize)
+    }
     return (
         <>
             {contextHolder}
@@ -308,9 +350,24 @@ const EmployeeTabItem = () => {
                     <Button icon={<PlusOutlined/>} onClick={addDepartment}>新增部门</Button>
                     <Button icon={<PlusOutlined/>} onClick={clickAddEmployee}>新增员工</Button>
                 </Space>
-                <Table size={"small"} pagination={false} bordered={true} columns={employeeColumns}
+                <Table size={"small"}
+                       pagination={false}
+                       bordered={true}
+                       columns={employeeColumns}
                        dataSource={employeeData}
-                       scroll={{x: 'max-content', y: 500}}/>
+                       scroll={{x: 'max-content', y: '64vh'}}
+                />
+                <Pagination
+                    current={page}
+                    pageSize={pageSize}
+                    total={total}
+                    showQuickJumper
+                    showSizeChanger
+                    pageSizeOptions={[10, 20, 30, 40, 50, 100]}
+                    showTotal={(total) => `共 ${total} 条`}
+                    onChange={handleChangePage}
+                    style={{marginTop: '10px'}}
+                />
                 <Drawer size={"large"}
                         title={isEmployeeEdit ? '编辑员工信息' : '新增员工'}
                         placement="right"
@@ -352,7 +409,7 @@ const EmployeeTabItem = () => {
                                 <Form.Item
                                     rules={[{required: true}]}
                                     label="员工号" name="employeeID">
-                                    <Input/>
+                                    <Input type='number' disabled={isEmployeeEdit}/>
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
