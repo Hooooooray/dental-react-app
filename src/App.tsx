@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import RouterView from "./router";
-import {ConfigProvider} from 'antd'
+import {ConfigProvider, App as AntDesignApp} from 'antd'
 import locale from 'antd/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
 
@@ -35,7 +35,9 @@ function App() {
                 },
             }}
         >
-            <RouterView></RouterView>
+            <AntDesignApp message={{ maxCount: 1 }}>
+                <RouterView></RouterView>
+            </AntDesignApp>
         </ConfigProvider>
 
     );

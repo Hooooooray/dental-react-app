@@ -10,9 +10,8 @@ import {
     DatePicker,
     Row,
     Col,
-    message,
     Table,
-    Popconfirm, Pagination,
+    Popconfirm, Pagination, App,
 } from "antd";
 import {PlusOutlined, QuestionCircleOutlined} from "@ant-design/icons";
 import 'dayjs/locale/zh-cn';
@@ -26,6 +25,7 @@ import {
 } from "../../../../api/employee";
 import type {ColumnsType} from 'antd/es/table';
 import dayjs from "dayjs";
+import {useNavigate} from "react-router-dom";
 
 
 const EmployeeTabItem = () => {
@@ -155,8 +155,17 @@ const EmployeeTabItem = () => {
     const [employeeOpen, setEmployeeOpen] = useState(false)
     const [isEmployeeEdit, setIsEmployeeEdit] = useState(false)
     const [employeeForm] = Form.useForm();
-    const [messageApi, contextHolder] = message.useMessage();
-
+    const {message} = App.useApp();
+    const navigate = useNavigate();
+    const handleToken = (error:any)=>{
+        if(error.response.status === 401){
+            message.warning('未登录，请先登录')
+            navigate('/login')
+        }else if(error.response.status === 403){
+            message.warning('登录已过期，请重新登录')
+            navigate('/login')
+        }
+    }
 
     // 渲染列表
     const renderEmployeeTable = () => {
@@ -193,7 +202,7 @@ const EmployeeTabItem = () => {
                 }
             })
             .catch(error => {
-                console.log(error)
+                handleToken(error)
             })
     }
 
@@ -244,6 +253,7 @@ const EmployeeTabItem = () => {
             }
         } catch (error) {
             console.error(error)
+            handleToken(error)
         }
     }
 
@@ -263,17 +273,12 @@ const EmployeeTabItem = () => {
                     renderEmployeeTable()
                 }
 
-                messageApi.open({
-                    type: 'success',
-                    content: '删除成功',
-                });
+                message.success('删除成功')
             }
         } catch (error) {
             console.error(error);
-            messageApi.open({
-                type: 'error',
-                content: '删除失败',
-            });
+            handleToken(error)
+            message.error('删除失败')
         }
     }
 
@@ -295,45 +300,31 @@ const EmployeeTabItem = () => {
             if (isEmployeeEdit) {
                 const editResponse = await editEmployee(data)
                 if (editResponse.status === 200) {
-                    messageApi.open({
-                        type: 'success',
-                        content: '编辑成功',
-                    });
+                    message.success('编辑成功')
                     renderEmployeeTable();
                     onEmployeeClose();
                 } else {
-                    messageApi.open({
-                        type: 'error',
-                        content: '编辑失败',
-                    });
+                    message.error('编辑失败')
                 }
             } else {
                 const addResponse = await addEmployee(data);
                 if (addResponse.status === 200) {
-                    messageApi.open({
-                        type: 'success',
-                        content: '添加成功',
-                    });
+                    message.success('添加成功')
                     renderEmployeeTable();
                     onEmployeeClose();
                 }
             }
-        } catch (err) {
-            console.error(err);
-            messageApi.open({
-                type: 'error',
-                content: '添加失败',
-            });
+        } catch (error) {
+            console.error(error);
+            handleToken(error)
+            message.error('添加失败')
         }
     };
 
 
     // 表单确认失败
     const onEmployeeFinishFailed = (errorInfo: object) => {
-        messageApi.open({
-            type: 'warning',
-            content: '请完成必要字段的填写',
-        });
+        message.warning('请完成必要字段的填写')
         console.log('Failed:', errorInfo);
     };
 
@@ -344,7 +335,6 @@ const EmployeeTabItem = () => {
     }
     return (
         <>
-            {contextHolder}
             <div style={{padding: '16px 16px 0 16px'}}>
                 <Space size="large" style={{marginBottom: 16}}>
                     <Button icon={<PlusOutlined/>} onClick={addDepartment}>新增部门</Button>

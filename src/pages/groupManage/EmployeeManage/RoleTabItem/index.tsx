@@ -1,16 +1,16 @@
 import React, {useEffect, useState} from "react";
-import {Button, Form, Input, message, Modal, Pagination, Popconfirm, Space, Table} from "antd";
+import {App, Button, Drawer, Form, Input, Modal, Pagination, Popconfirm, Space, Table} from "antd";
 import {PlusOutlined, QuestionCircleOutlined} from "@ant-design/icons";
 import {ColumnsType} from "antd/es/table";
-import {addRole, deleteRole, getRoles} from "../../../../api/roles";
+import {addRole, deleteRole, getRoles} from "../../../../api/role";
 import {deleteEmployee} from "../../../../api/employee";
 
 const RoleTabItem = () => {
-    const [messageApi, contextHolder] = message.useMessage();
+    const {message} = App.useApp();
 
     interface RoleDataType {
         key: React.Key;
-        id:number;
+        id: number;
         roleName: string;
         roleType: string
     }
@@ -18,7 +18,7 @@ const RoleTabItem = () => {
     const [roleData, setRoleData] = useState<RoleDataType[]>([]);
 
     const handleEditEmployee = (record: RoleDataType) => {
-        console.log(record)
+        setPermissionOpen(true)
     }
     const handleDeleteRole = async (record: any) => {
         let id = record.id
@@ -34,17 +34,11 @@ const RoleTabItem = () => {
                 } else {
                     renderRoleTable()
                 }
-                messageApi.open({
-                    type: 'success',
-                    content: '删除成功',
-                });
+                message.success('删除成功')
             }
         } catch (error) {
             console.error(error);
-            messageApi.open({
-                type: 'error',
-                content: '删除失败',
-            });
+            message.error('删除失败')
         }
     }
     const roleColumns: ColumnsType<RoleDataType> = [
@@ -74,7 +68,7 @@ const RoleTabItem = () => {
                 <Space>
                     <Button onClick={() => handleEditEmployee(record)}>权限配置</Button>
                     {
-                        record.roleName === '自定义角色' &&
+                        record.roleType === '自定义角色' &&
                         (<Popconfirm
                             title="提示"
                             description="确定要删除此员工角色？"
@@ -157,28 +151,19 @@ const RoleTabItem = () => {
             const data = roleForm.getFieldsValue();
             const roleName = data.roleName
             const response = await addRole({roleName})
-            if(response.status ===200){
-                messageApi.open({
-                    type: 'success',
-                    content: '新增成功',
-                });
+            if (response.status === 200) {
+                message.success('新增成功')
                 renderRoleTable()
                 setIsModalOpen(false)
             }
-        }catch (error){
+        } catch (error) {
             console.error(error);
-            messageApi.open({
-                type: 'error',
-                content: '新增失败',
-            });
+            message.error('新增失败')
         }
     }
 
     const onRoleFinishFailed = (errorInfo: object) => {
-        messageApi.open({
-            type: 'warning',
-            content: '请完成必要字段的填写',
-        });
+        message.warning('请完成必要字段的填写')
         console.log('Failed:', errorInfo);
     }
 
@@ -188,10 +173,14 @@ const RoleTabItem = () => {
         roleForm.resetFields()
     };
 
+    const [permissionOpen, setPermissionOpen] = useState(false)
+    const onPermissionClose = () => {
+        setPermissionOpen(false)
+    };
+
 
     return (
         <>
-            {contextHolder}
             <div style={{padding: '16px 16px 0 16px'}}>
                 <Button style={{marginBottom: 16}} icon={<PlusOutlined/>} onClick={clickAddRole}>新增角色</Button>
                 <Modal title="新增角色" open={isModalOpen} onOk={() => {
@@ -227,6 +216,29 @@ const RoleTabItem = () => {
                     onChange={handleChangePage}
                     style={{marginTop: '10px'}}
                 />
+                <Drawer
+                    size={"large"}
+                    title='权限配置'
+                    placement="right"
+                    closable={false}
+                    onClose={onPermissionClose}
+                    open={permissionOpen}
+                    extra={
+                        <Space size={"middle"}>
+                            <Button type="primary" onClick={() => {
+                                // employeeForm.submit();
+                            }}>
+                                确定
+                            </Button>
+                            <Button onClick={onPermissionClose}>取消</Button>
+                        </Space>
+                    }
+                >
+                    <style>
+                        {`.ant-drawer-header {background: linear-gradient(to right, #9ED2EF, #A1ECC8);padding-left:10px !important;padding-right:10px !important`}
+                    </style>
+
+                </Drawer>
             </div>
         </>
     )

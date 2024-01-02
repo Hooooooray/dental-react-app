@@ -11,6 +11,7 @@ import ProjectManage from '../pages/groupManage/ProjectManage';
 import AppointCenter from '../pages/workbench/AppointCenter';
 import PatientCenter from '../pages/workbench/PatientCenter';
 import PatientManage from '../pages/workbench/PatientManage';
+import PermissionConfiguration from "../pages/groupManage/PermissionConfiguration";
 
 
 
@@ -62,6 +63,10 @@ const RouterView = ()=>{
                         {
                             path:'employeeManage',
                             element:<EmployeeManage></EmployeeManage>
+                        },
+                        {
+                            path:'permissionConfiguration',
+                            element: <PermissionConfiguration></PermissionConfiguration>
                         },
                         {
                             path:'projectManage',

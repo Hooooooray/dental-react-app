@@ -12,7 +12,7 @@ const onChange = (key: string) => {
 const items: TabsProps['items'] = [
     {
         key: '1',
-        label: '人员管理',
+        label: '员工管理',
         children: <EmployeeTabItem></EmployeeTabItem>,
     },
     {
