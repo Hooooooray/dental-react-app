@@ -248,7 +248,6 @@ const EmployeeTabItem = () => {
                 if (oldEmployee.hireDate) {
                     oldEmployee.hireDate = dayjs(oldEmployee.hireDate)
                 }
-                console.log(oldEmployee.birthDate)
                 employeeForm.setFieldsValue(oldEmployee)
             }
         } catch (error) {

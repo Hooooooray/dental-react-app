@@ -10,6 +10,10 @@ export const getRoles = (page:number,pageSize:number) => {
     return $api.get('/roles',{params:{page,pageSize}})
 }
 
+export const getRole = (id:number) =>{
+    return $api.get('/role',{params:{id}})
+}
+
 export const deleteRole = (id: number) => {
     return $api.post('role/delete', {id})
 }

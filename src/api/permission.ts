@@ -1,5 +1,5 @@
 import $api from "./index";
 
-export const getPermission = () => {
-    return $api.get('/permission')
+export const getPermissions = () => {
+    return $api.get('/permissions')
 }

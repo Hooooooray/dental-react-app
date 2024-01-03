@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from "react";
-import {App, Button, Drawer, Form, Input, Modal, Pagination, Popconfirm, Space, Table} from "antd";
+import {App, Button, Drawer, Form, Input, Modal, Pagination, Popconfirm, Space, Table, Tree} from "antd";
 import {PlusOutlined, QuestionCircleOutlined} from "@ant-design/icons";
 import {ColumnsType} from "antd/es/table";
-import {addRole, deleteRole, getRoles} from "../../../../api/role";
+import type {DataNode} from 'antd/es/tree';
+import {addRole, deleteRole, getRole, getRoles} from "../../../../api/role";
 import {deleteEmployee} from "../../../../api/employee";
+import {getPermissions} from "../../../../api/permission";
 
 const RoleTabItem = () => {
     const {message} = App.useApp();
@@ -15,11 +17,67 @@ const RoleTabItem = () => {
         roleType: string
     }
 
+
     const [roleData, setRoleData] = useState<RoleDataType[]>([]);
 
-    const handleEditEmployee = (record: RoleDataType) => {
+    const [treeData, setTreeData] = useState<DataNode[]>([]);
+    const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+    const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
+    const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
+
+
+    const convertToTreeData = (permissions: any) => {
+        return permissions.map((permission: { id: number, name: string, children: object }) => {
+            const node = {
+                key: permission.id,
+                title: permission.name,
+                children: convertToTreeData(permission.children || []),
+            };
+            return node;
+        });
+    };
+
+    const handleEditPermission = async (record: RoleDataType) => {
+        setCheckedKeys([])
+        try {
+            const role = await getRole(record.id)
+            if (role.status === 200) {
+                const permissionsId = role.data.data.permissions
+                console.log(permissionsId)
+                const permissionsArray = permissionsId.length > 1 ? permissionsId.split(',') : [permissionsId]
+                console.log('permissionsArray', permissionsArray)
+                if (permissionsArray.length > 0) {
+                    setCheckedKeys(permissionsArray.map((permission: string) => parseInt(permission)))
+                }
+            }
+            const permissions = await getPermissions()
+            if (permissions.status === 200) {
+                const permissionData = permissions.data.data
+                setTreeData(convertToTreeData(permissionData))
+            }
+        } catch (error) {
+            console.error(error)
+        }
         setPermissionOpen(true)
     }
+
+    useEffect(() => {
+        console.log('useEffect', treeData, checkedKeys)
+    }, [treeData, checkedKeys]);
+
+    const onExpand = (expandedKeysValue: React.Key[]) => {
+        console.log('onExpand', expandedKeysValue);
+        // if not set autoExpandParent to false, if children expanded, parent can not collapse.
+        // or, you can remove all expanded children keys.
+        setExpandedKeys(expandedKeysValue);
+        setAutoExpandParent(false);
+    };
+
+    const onCheck = (checkedKeysValue: any) => {
+        console.log('onCheck', checkedKeysValue);
+        setCheckedKeys(checkedKeysValue);
+    };
+
     const handleDeleteRole = async (record: any) => {
         let id = record.id
         console.log(id)
@@ -66,7 +124,7 @@ const RoleTabItem = () => {
             fixed: 'right',
             render: (record) => (
                 <Space>
-                    <Button onClick={() => handleEditEmployee(record)}>权限配置</Button>
+                    <Button onClick={() => handleEditPermission(record)}>权限配置</Button>
                     {
                         record.roleType === '自定义角色' &&
                         (<Popconfirm
@@ -237,7 +295,18 @@ const RoleTabItem = () => {
                     <style>
                         {`.ant-drawer-header {background: linear-gradient(to right, #9ED2EF, #A1ECC8);padding-left:10px !important;padding-right:10px !important`}
                     </style>
-
+                    <Tree
+                        checkable
+                        onExpand={onExpand}
+                        onCheck={onCheck}
+                        expandedKeys={expandedKeys}
+                        autoExpandParent={autoExpandParent}
+                        checkedKeys={checkedKeys}
+                        treeData={treeData}
+                    />
+                    <Button onClick={() => {
+                        console.log(checkedKeys)
+                    }}>显示check</Button>
                 </Drawer>
             </div>
         </>
