@@ -3,7 +3,7 @@ import {App, Button, Drawer, Form, Input, Modal, Pagination, Popconfirm, Space, 
 import {PlusOutlined, QuestionCircleOutlined} from "@ant-design/icons";
 import {ColumnsType} from "antd/es/table";
 import type {DataNode} from 'antd/es/tree';
-import {addRole, deleteRole, getRole, getRoles} from "../../../../api/role";
+import {addRole, deleteRole, getRole, getRoles, modifyPermission} from "../../../../api/role";
 import {deleteEmployee} from "../../../../api/employee";
 import {getPermissions} from "../../../../api/permission";
 
@@ -21,7 +21,7 @@ const RoleTabItem = () => {
     const [roleData, setRoleData] = useState<RoleDataType[]>([]);
 
     const [treeData, setTreeData] = useState<DataNode[]>([]);
-    const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+    const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([1,2]);
     const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
     const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
 
@@ -37,17 +37,17 @@ const RoleTabItem = () => {
         });
     };
 
+    const [currentRole,setCurrentRole] = useState(0)
+
     const handleEditPermission = async (record: RoleDataType) => {
         setCheckedKeys([])
         try {
             const role = await getRole(record.id)
             if (role.status === 200) {
                 const permissionsId = role.data.data.permissions
-                console.log(permissionsId)
                 const permissionsArray = permissionsId.length > 1 ? permissionsId.split(',') : [permissionsId]
-                console.log('permissionsArray', permissionsArray)
                 if (permissionsArray.length > 0) {
-                    setCheckedKeys(permissionsArray.map((permission: string) => parseInt(permission)))
+                    setCheckedKeys(permissionsArray.filter((permission: string) => permission !== '').map((permission: string) => Number(permission)))
                 }
             }
             const permissions = await getPermissions()
@@ -59,6 +59,22 @@ const RoleTabItem = () => {
             console.error(error)
         }
         setPermissionOpen(true)
+        setCurrentRole(record.id)
+    }
+
+    const handlePermissionSubmit = async ()=>{
+        console.log(currentRole,checkedKeys)
+        const permissions = checkedKeys.join(',')
+        console.log('permissions',permissions)
+        try {
+            const response = await modifyPermission(currentRole,permissions)
+            if (response.status === 200){
+                message.success('权限配置成功')
+                setPermissionOpen(false)
+            }
+        }catch (error){
+            console.log(error)
+        }
     }
 
     useEffect(() => {
@@ -67,8 +83,6 @@ const RoleTabItem = () => {
 
     const onExpand = (expandedKeysValue: React.Key[]) => {
         console.log('onExpand', expandedKeysValue);
-        // if not set autoExpandParent to false, if children expanded, parent can not collapse.
-        // or, you can remove all expanded children keys.
         setExpandedKeys(expandedKeysValue);
         setAutoExpandParent(false);
     };
@@ -124,7 +138,12 @@ const RoleTabItem = () => {
             fixed: 'right',
             render: (record) => (
                 <Space>
-                    <Button onClick={() => handleEditPermission(record)}>权限配置</Button>
+                    {
+                        (record.roleType === '系统角色' || record.roleType ==='自定义角色') &&
+                        (
+                            <Button onClick={() => handleEditPermission(record)}>权限配置</Button>
+                        )
+                    }
                     {
                         record.roleType === '自定义角色' &&
                         (<Popconfirm
@@ -283,9 +302,7 @@ const RoleTabItem = () => {
                     open={permissionOpen}
                     extra={
                         <Space size={"middle"}>
-                            <Button type="primary" onClick={() => {
-                                // employeeForm.submit();
-                            }}>
+                            <Button type="primary" onClick={handlePermissionSubmit}>
                                 确定
                             </Button>
                             <Button onClick={onPermissionClose}>取消</Button>
@@ -304,9 +321,6 @@ const RoleTabItem = () => {
                         checkedKeys={checkedKeys}
                         treeData={treeData}
                     />
-                    <Button onClick={() => {
-                        console.log(checkedKeys)
-                    }}>显示check</Button>
                 </Drawer>
             </div>
         </>

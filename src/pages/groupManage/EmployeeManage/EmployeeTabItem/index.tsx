@@ -157,11 +157,11 @@ const EmployeeTabItem = () => {
     const [employeeForm] = Form.useForm();
     const {message} = App.useApp();
     const navigate = useNavigate();
-    const handleToken = (error:any)=>{
-        if(error.response.status === 401){
+    const handleToken = (error: any) => {
+        if (error.response.status === 401) {
             message.warning('未登录，请先登录')
             navigate('/login')
-        }else if(error.response.status === 403){
+        } else if (error.response.status === 403) {
             message.warning('登录已过期，请重新登录')
             navigate('/login')
         }
@@ -244,7 +244,6 @@ const EmployeeTabItem = () => {
                 if (oldEmployee.birthDate) {
                     oldEmployee.birthDate = dayjs(oldEmployee.birthDate)
                 }
-
                 if (oldEmployee.hireDate) {
                     oldEmployee.hireDate = dayjs(oldEmployee.hireDate)
                 }
