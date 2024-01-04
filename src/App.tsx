@@ -4,6 +4,8 @@ import RouterView from "./router";
 import {ConfigProvider, App as AntDesignApp} from 'antd'
 import locale from 'antd/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
+import store from "./store";
+import {Provider} from "react-redux";
 
 function App() {
     return (
@@ -36,7 +38,9 @@ function App() {
             }}
         >
             <AntDesignApp message={{ maxCount: 1 }}>
-                <RouterView></RouterView>
+                <Provider store={store}>
+                    <RouterView></RouterView>
+                </Provider>
             </AntDesignApp>
         </ConfigProvider>
 
