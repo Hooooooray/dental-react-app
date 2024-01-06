@@ -1,6 +1,7 @@
 import {createStore} from 'redux';
+import SecureLS from "secure-ls";
 
-interface AppState {
+export interface AppState {
     permissions: number[];
 }
 
@@ -10,8 +11,14 @@ interface UpdatePermissionsAction {
     payload: number[]; // 载荷，用于传递新的 permissions 数组
 }
 
+const ls = new SecureLS({ encodingType: 'aes' });
+
+const savedPermissions = ls.get('permissions');
+console.log(savedPermissions)
+const initialPermissions = savedPermissions ? savedPermissions : [0];
+
 // 创建 reducer
-const reducer = (state: AppState = {permissions: [0]}, action: UpdatePermissionsAction): AppState => {
+const reducer = (state: AppState = {permissions: initialPermissions || [0]}, action: UpdatePermissionsAction): AppState => {
     switch (action.type) {
         case 'UPDATE_PERMISSIONS':
             return {
@@ -29,7 +36,9 @@ const store = createStore(reducer);
 
 // 订阅 state 的变化
 store.subscribe(() => {
-    // console.log(store.getState());
+    const state = store.getState();
+    ls.set('permissions', state.permissions);
 });
+
 
 export default store;

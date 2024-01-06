@@ -25,7 +25,6 @@ const items: MenuItem[] = [
     getItem('人员管理', '/employeeManage',),
     getItem('权限配置','/permissionConfiguration'),
     getItem('项目管理', '/projectManage',),
-
 ];
 
 const GroupManageLayout = () => {
