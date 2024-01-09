@@ -1,5 +1,5 @@
 import React, {useState, useEffect, FunctionComponent} from 'react';
-import {createBrowserRouter, RouterProvider, Navigate, RouteObject} from 'react-router-dom';
+import {createBrowserRouter, RouterProvider, Navigate, RouteObject, useNavigate, redirect} from 'react-router-dom';
 import {useSelector} from "react-redux";
 import IndexPage from "../pages/IndexPage";
 import LoginPage from "../pages/LoginPage";
@@ -39,7 +39,6 @@ const RouterView = () => {
     ]
     // 定义一个状态来保存路由配置
     const [routerConfig, setRouterConfig] = useState<RouterConfigType>(baseRoutes);
-
     const userPermissions = useSelector((state: AppState) => state.permissions);
     console.log("userPermissions", userPermissions)
     // 根据权限动态添加路由
@@ -116,8 +115,8 @@ const RouterView = () => {
 
                 // 更新路由配置
                 setRouterConfig(newBaseRoutes);
-            } catch (error) {
-                console.error('获取权限数据失败:', error);
+            } catch (error:any) {
+                console.error(error)
             }
         };
         fetchPermissions()

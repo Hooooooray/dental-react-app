@@ -4,6 +4,10 @@ export const login = (data:any)=>{
     return $api.post('/login',data)
 }
 
-export const verify = ()=>{
-    return $api.post('/verify')
+export const verifyRole = ()=>{
+    return $api.post('/verifyRole')
+}
+
+export const verifyUser = () =>{
+    return $api.post('/verifyUser')
 }

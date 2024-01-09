@@ -2,7 +2,7 @@ import React from "react";
 import style from './style.module.scss'
 import {App, Button, Flex, Form, Input, Typography} from "antd";
 import {useNavigate} from 'react-router-dom'
-import {login, verify} from "../../api/user";
+import {login, verifyRole} from "../../api/user";
 import {useDispatch} from "react-redux";
 import {updatePermissions} from "../../store/actions/actions";
 
@@ -20,7 +20,7 @@ const LoginPage = () => {
             if (response.status === 200){
                 const token = response.data.data.token
                 localStorage.setItem('token',token)
-                const verifyRes = await verify()
+                const verifyRes = await verifyRole()
                 if (verifyRes.status === 200) {
                     const loadPermissions = verifyRes.data.data.permissions
                     const loadPermissionsArray = loadPermissions.length > 1 ? loadPermissions.split(',') : [loadPermissions]
