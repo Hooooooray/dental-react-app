@@ -3,28 +3,37 @@ import SecureLS from "secure-ls";
 
 export interface AppState {
     permissions: number[];
+    patientOpen: boolean
 }
+
 
 // 定义 action 类型
-interface UpdatePermissionsAction {
-    type: 'UPDATE_PERMISSIONS';
-    payload: number[]; // 载荷，用于传递新的 permissions 数组
-}
+type AppAction =
+    | { type: 'UPDATE_PERMISSIONS'; payload: number[] }
+    | { type: 'OPEN_DRAWER' }
+    | { type: 'CLOSE_DRAWER' };
 
-const ls = new SecureLS({ encodingType: 'aes' });
+const ls = new SecureLS({encodingType: 'aes'});
 
 const savedPermissions = ls.get('permissions');
 console.log(savedPermissions)
 const initialPermissions = savedPermissions ? savedPermissions : [0];
 
 // 创建 reducer
-const reducer = (state: AppState = {permissions: initialPermissions || [0]}, action: UpdatePermissionsAction): AppState => {
+const reducer = (state: AppState = {
+    permissions: initialPermissions || [0],
+    patientOpen: false
+}, action: AppAction): AppState => {
     switch (action.type) {
         case 'UPDATE_PERMISSIONS':
             return {
                 ...state,
                 permissions: action.payload,
             };
+        case 'OPEN_DRAWER':
+            return { ...state, patientOpen: true };
+        case 'CLOSE_DRAWER':
+            return { ...state, patientOpen: false };
         // 处理其他 action 类型或默认情况
         default:
             return state;

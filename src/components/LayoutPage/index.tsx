@@ -11,6 +11,9 @@ import {FormOutlined, PlusOutlined, UploadOutlined,LoadingOutlined} from '@ant-d
 import {formatAreaData} from "./area";
 import {RcFile, UploadChangeParam} from "antd/es/upload";
 import {logoSrc} from "./logoSrc";
+import {useDispatch, useSelector} from "react-redux";
+import {AppState} from "../../store";
+import {closeDrawer, openDrawer} from "../../store/actions/actions";
 
 const {Header} = Layout;
 
@@ -107,15 +110,17 @@ const LayoutPage = () => {
         }
     }
 
-    const [patientOpen, setPatientOpen] = useState(false)
+    // const [patientOpen, setPatientOpen] = useState(false)
+    const dispatch = useDispatch();
+    const patientOpen = useSelector((state:AppState) => state.patientOpen);
     const [patientForm] = Form.useForm();
     const clickAddPatient = () => {
         handleAddonClick()
-        setPatientOpen(true)
+        dispatch(openDrawer())
     }
     const onPatientClose = () => {
         patientForm.resetFields();
-        setPatientOpen(false);
+        dispatch(closeDrawer())
     };
 
     const onPatientFinish = async () => {

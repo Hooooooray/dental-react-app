@@ -25,6 +25,6 @@ export const getEmployee = (employeeID: number) => {
     return $api.get('/employee', {params: {employeeID}});
 }
 
-export const getEmployees = (page:number,pageSize:number) => {
-    return $api.get('/employees',{params:{page,pageSize}})
+export const getEmployees = (page: number, pageSize: number) => {
+    return $api.get('/employees', {params: {page, pageSize}})
 }
