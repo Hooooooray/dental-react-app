@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
-import {Layout, Button, Form, Row, Input, Space, Table, Pagination, Popconfirm, App, Flex} from 'antd';
-import {QuestionCircleOutlined} from "@ant-design/icons";
+import {Layout, Button, Form, Row, Input, Space, Table, Pagination, Popconfirm, App, Flex, Avatar} from 'antd';
+import {QuestionCircleOutlined,UserOutlined} from "@ant-design/icons";
 import {ColumnsType} from "antd/es/table";
 import {useNavigate} from "react-router-dom";
 import dayjs from "dayjs";
@@ -29,6 +29,7 @@ const PatientCenter = () => {
 
     interface PatientDataType {
         id: number;
+        avatar:any;
         key: React.Key;
     }
 
@@ -145,7 +146,9 @@ const PatientCenter = () => {
                             const addressDistrict = areaData[addressCityCode][addressDistrictCode]
                             formattedPatient.address = `${addressProvince} ${addressCity} ${addressDistrict}`
                         }
+                        console.log(formattedPatient.avatar)
                         return formattedPatient;
+
                     }))
                 }
             })
@@ -200,11 +203,17 @@ const PatientCenter = () => {
         },
         {
             title: '患者',
-            width: 90,
+            width: 100,
             dataIndex: 'name',
             key: 'name',
             fixed: "left",
             sorter: true,
+            render: (text, record) => (
+                <Space>
+                    {record.avatar ? <Avatar src={`data:image/jpeg;base64,${record.avatar.data}`} /> : <Avatar icon={<UserOutlined />}/>}
+                    {text}
+                </Space>
+            ),
         },
         {
             title: '患者类型',

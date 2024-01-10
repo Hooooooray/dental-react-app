@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Outlet, useNavigate, useLocation} from 'react-router-dom'
 import type {MenuProps, UploadFile, UploadProps} from 'antd';
 import {App, Button, Col, DatePicker, Drawer, Form, Input, Layout, Menu, Radio, Row, Select, Space, Upload} from 'antd';
@@ -7,7 +7,7 @@ import {verifyUser} from "../../api/user";
 import {Cascader} from 'antd';
 import areaData from 'china-area-data/v5/data';
 import {addPatient, editPatient, getMaxPatientID} from "../../api/patient";
-import {FormOutlined, PlusOutlined, UploadOutlined,LoadingOutlined} from '@ant-design/icons';
+import {FormOutlined, PlusOutlined, LoadingOutlined} from '@ant-design/icons';
 import {formatAreaData} from "./area";
 import {RcFile, UploadChangeParam} from "antd/es/upload";
 import {logoSrc} from "./logoSrc";
