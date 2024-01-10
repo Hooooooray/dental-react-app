@@ -16,8 +16,30 @@ export const getMaxPatientID = () => {
     return $api.get('/patient/maxID')
 }
 
-export const getPatient = (page: number, pageSize: number, id?: string, name?: string, phone?: string) => {
-    return $api.get('/patients', {params: {page, pageSize, id, name, phone}})
+export const getPatient = (id: number) => {
+    return $api.get('/patient', {params: {id}});
+}
+
+export const getPatients = (page: number, pageSize: number, id?: string, name?: string,
+                            phone?: string, idCardNo?: string, isTodayOnly?: boolean,
+                            sortColumn?: string, sortOrder?: string | undefined) => {
+    return $api.get('/patients', {
+        params: {
+            page,
+            pageSize,
+            id,
+            name,
+            phone,
+            idCardNo,
+            isTodayOnly,
+            sortColumn,
+            sortOrder
+        }
+    })
+}
+
+export const editPatient = (data: PatientType) => {
+    return $api.post('/patient/edit', data)
 }
 
 export const deletePatient = (id: number) => {

@@ -1,15 +1,15 @@
 import React, {useEffect, useState} from "react";
-import {Layout, Flex, Button, Form, Col, Row, Input, Space, Table, Pagination, Popconfirm, App} from 'antd';
-import {FormOutlined, QuestionCircleOutlined} from "@ant-design/icons";
+import {Layout, Button, Form, Row, Input, Space, Table, Pagination, Popconfirm, App, Flex} from 'antd';
+import {QuestionCircleOutlined} from "@ant-design/icons";
 import {ColumnsType} from "antd/es/table";
 import {useNavigate} from "react-router-dom";
-import {getEmployees} from "../../../api/employee";
 import dayjs from "dayjs";
-import {deletePatient, getPatient} from "../../../api/patient";
+import {deletePatient, getPatient, getPatients} from "../../../api/patient";
 import areaData from 'china-area-data/v5/data';
 import {useDispatch, useSelector} from "react-redux";
 import {AppState} from "../../../store";
-import {openDrawer} from "../../../store/actions/actions";
+import {openPatientDrawer, setPatientEditOn, setPatientObj} from "../../../store/actions/actions";
+import {exportToExcel} from "./toExcel";
 
 const {Header, Footer, Sider, Content} = Layout;
 const PatientCenter = () => {
@@ -20,6 +20,10 @@ const PatientCenter = () => {
     const [patientId, setPatientId] = useState()
     const [name, setName] = useState()
     const [phone, setPhone] = useState()
+    const [idCardNo, setIdCardNo] = useState()
+    const [isTodayOnly, setIsTodayOnly] = useState(false)
+    const [sortOrder, setSortOrder] = useState()
+    const [sortColumn, setSortColumn] = useState()
     const {message} = App.useApp();
     const navigate = useNavigate();
 
@@ -39,9 +43,45 @@ const PatientCenter = () => {
     }
 
     const dispatch = useDispatch();
-    const patientOpen = useSelector((state: AppState) => state.patientOpen);
-    const handleEditPatient = (record: PatientDataType) => {
-        dispatch(openDrawer())
+    const renderPatient = useSelector((state: AppState) => state.renderPatient)
+    const handleEditPatient = async (record: PatientDataType) => {
+        dispatch(openPatientDrawer())
+        dispatch(setPatientEditOn())
+        const id = record.id
+        try {
+            const response = await getPatient(id)
+            if (response.status === 200) {
+                let patient = response.data.data
+                if (patient.birthDate) {
+                    patient.birthDate = dayjs(patient.birthDate)
+                }
+                if (patient.createdAt) {
+                    patient.createdAt = dayjs(patient.createdAt)
+                }
+                if (patient.addressProvince) {
+                    patient.address = []
+                    patient.address.push(patient.addressProvince)
+                    delete patient.addressProvince
+                    if (patient.addressCity) {
+                        patient.address.push(patient.addressCity)
+                        delete patient.addressCity
+                        if (patient.addressDistrict) {
+                            patient.address.push(patient.addressDistrict)
+                            delete patient.addressDistrict
+                        }
+                    }
+                    console.log(patient.address)
+                }
+                if (patient.avatar) {
+                    delete patient.avatar
+                }
+                console.log(patient)
+                dispatch(setPatientObj(patient))
+            }
+        } catch (error) {
+            console.error(error)
+            handleToken(error)
+        }
     }
 
     const handleDeletePatient = async (record: PatientDataType) => {
@@ -79,7 +119,7 @@ const PatientCenter = () => {
             addressCity?: string
         }
 
-        getPatient(page, pageSize, patientId, name, phone)
+        getPatients(page, pageSize, patientId, name, phone, idCardNo, isTodayOnly,sortColumn,sortOrder)
             .then(response => {
                 if (response.status === 200) {
                     let patients = response.data.data
@@ -117,20 +157,30 @@ const PatientCenter = () => {
     useEffect(() => {
         console.log(('effect'))
         renderPatientTable()
-    }, [page, pageSize, patientId, name, phone])
+    }, [page, pageSize, patientId, name, phone, idCardNo, renderPatient, isTodayOnly,sortOrder,sortColumn])
 
     const onPatientSearchFinish = () => {
         const data = patientSearch.getFieldsValue();
         console.log(data)
-        const {id, name, phone} = data
+        const {id, name, phone, idCardNo} = data
         setPatientId(id)
         setName(name)
         setPhone(phone)
+        setIdCardNo(idCardNo)
+    }
+
+    const onTodayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setIsTodayOnly(e.target.checked)
+        const newTotal = total - 1;
+        const newTotalPages = Math.ceil(newTotal / pageSize);
+        if (page > newTotalPages) {
+            // 如果当前页超过了新的总页数，将页码减一
+            setPage(newTotalPages);
+        }
     }
     const onPatientSearchFinishFailed = () => {
 
     }
-
 
     const handleChangePage = (page: number, pageSize: number) => {
         setPage(page)
@@ -145,32 +195,37 @@ const PatientCenter = () => {
             width: 90,
             dataIndex: 'id',
             key: 'id',
-            fixed: "left"
+            fixed: "left",
+            sorter: true,
         },
         {
             title: '患者',
             width: 90,
             dataIndex: 'name',
             key: 'name',
-            fixed: "left"
+            fixed: "left",
+            sorter: true,
         },
         {
             title: '患者类型',
             width: 90,
             dataIndex: 'patientType',
             key: 'patientType',
+            sorter: true,
         },
         {
             title: '咨询项目',
             width: 90,
             dataIndex: 'consultationProject',
             key: 'consultationProject',
+            sorter: true,
         },
         {
             title: '受理人',
             width: 90,
             dataIndex: 'acceptancePerson',
             key: 'acceptancePerson',
+            sorter: true,
         },
         {
             title: '身份证号',
@@ -183,18 +238,21 @@ const PatientCenter = () => {
             width: 90,
             dataIndex: 'gender',
             key: 'gender',
+            sorter: true,
         },
         {
             title: '出生日期',
             width: 150,
             dataIndex: 'birthDate',
             key: 'birthDate',
+            sorter: true,
         },
         {
             title: '创建时间',
             width: 150,
             dataIndex: 'createdAt',
             key: 'createdAt',
+            sorter: true,
         },
         {
             title: '联系电话',
@@ -228,7 +286,7 @@ const PatientCenter = () => {
         },
         {
             title: '患者备注',
-            width: 90,
+            width: 250,
             dataIndex: 'patientNotes',
             key: 'patientNotes',
         },
@@ -255,6 +313,7 @@ const PatientCenter = () => {
             width: 90,
             dataIndex: 'age',
             key: 'age',
+            sorter: true,
         },
         {
             title: '操作',
@@ -282,6 +341,13 @@ const PatientCenter = () => {
     ]
 
 
+    const handleTableChange = (sorter: any) => {
+        const { columnKey, order } = sorter;
+        setSortOrder(order)
+        setSortColumn(columnKey)
+    };
+
+
     return (
         <>
             <Sider width={174} style={{borderRight: "1px solid #EFEFEF", padding: "10px"}}>
@@ -293,6 +359,14 @@ const PatientCenter = () => {
                     onFinish={onPatientSearchFinish}
                     onFinishFailed={onPatientSearchFinishFailed}
                 >
+                    <Row>
+                            <Form.Item label="仅显示今日新增患者" name="onlyTody">
+                                <Input style={{width:"15px",height:"15px"}} checked={isTodayOnly} type="checkbox" onChange={onTodayChange}/>
+                            </Form.Item>
+                            <Button style={{marginLeft:"10px"}} type={"primary"} onClick={() => exportToExcel(patientData, 'patients')}>
+                                导出为 Excel
+                            </Button>
+                    </Row>
                     <Row>
                         <Space>
                             <Form.Item
@@ -306,6 +380,9 @@ const PatientCenter = () => {
                             <Form.Item label="手机号" name="phone">
                                 <Input style={{width: "120px", textAlign: "center"}}/>
                             </Form.Item>
+                            <Form.Item label="身份证号" name="idCardNo">
+                                <Input style={{width: "180px", textAlign: "center"}}/>
+                            </Form.Item>
                             <Form.Item>
                                 <Button onClick={() => {
                                     patientSearch.submit()
@@ -313,6 +390,7 @@ const PatientCenter = () => {
                             </Form.Item>
                         </Space>
                     </Row>
+
                 </Form>
 
                 <Table size={"small"}
@@ -321,6 +399,7 @@ const PatientCenter = () => {
                        columns={patientColumns}
                        dataSource={patientData}
                        scroll={{x: "max-content", y: '64vh'}}
+                       onChange={(pagination, filters, sorter) => handleTableChange(sorter)}
                 />
                 <Pagination
                     current={page}

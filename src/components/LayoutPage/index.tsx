@@ -6,14 +6,16 @@ import style from './style.module.scss'
 import {verifyUser} from "../../api/user";
 import {Cascader} from 'antd';
 import areaData from 'china-area-data/v5/data';
-import {addPatient, getMaxPatientID} from "../../api/patient";
+import {addPatient, editPatient, getMaxPatientID} from "../../api/patient";
 import {FormOutlined, PlusOutlined, UploadOutlined,LoadingOutlined} from '@ant-design/icons';
 import {formatAreaData} from "./area";
 import {RcFile, UploadChangeParam} from "antd/es/upload";
 import {logoSrc} from "./logoSrc";
 import {useDispatch, useSelector} from "react-redux";
 import {AppState} from "../../store";
-import {closeDrawer, openDrawer} from "../../store/actions/actions";
+import {closePatientDrawer, openPatientDrawer, renderPatient, setPatientEditClose} from "../../store/actions/actions";
+
+const { TextArea } = Input;
 
 const {Header} = Layout;
 
@@ -113,14 +115,24 @@ const LayoutPage = () => {
     // const [patientOpen, setPatientOpen] = useState(false)
     const dispatch = useDispatch();
     const patientOpen = useSelector((state:AppState) => state.patientOpen);
+    const isPatientEdit = useSelector((state:AppState) => state.isPatientEdit)
+    let patinetObj = useSelector((state:AppState)=>state.patientObj)
     const [patientForm] = Form.useForm();
+
+    useEffect(()=>{
+        console.log(patinetObj)
+        if (isPatientEdit){
+            patientForm.setFieldsValue(patinetObj)
+        }
+    },[patinetObj])
     const clickAddPatient = () => {
         handleAddonClick()
-        dispatch(openDrawer())
+        dispatch(openPatientDrawer())
+        dispatch(setPatientEditClose())
     }
     const onPatientClose = () => {
         patientForm.resetFields();
-        dispatch(closeDrawer())
+        dispatch(closePatientDrawer())
     };
 
     const onPatientFinish = async () => {
@@ -141,12 +153,22 @@ const LayoutPage = () => {
                 // @ts-ignore
                 data.avatar = imageUrl.split(',')[1]
             }
-            console.log(data)
-            const addPatientResponse = await addPatient(data)
-            if (addPatientResponse.status === 200) {
-                message.success('成功新增患者')
-                onPatientClose()
+            if (isPatientEdit){
+                console.log(data)
+                const editPatientResponse = await editPatient(data)
+                if(editPatientResponse.status === 200){
+                    message.success('修改患者信息成功')
+                    onPatientClose()
+                    dispatch(renderPatient())
+                }
+            }else {
+                const addPatientResponse = await addPatient(data)
+                if (addPatientResponse.status === 200) {
+                    message.success('成功新增患者')
+                    onPatientClose()
+                }
             }
+
         } catch (error) {
             console.error(error);
             message.error('添加失败')
@@ -257,7 +279,7 @@ const LayoutPage = () => {
             </Layout>
 
             <Drawer size={"large"}
-                    title='新增患者'
+                    title={isPatientEdit? '修改患者信息':'新增患者'}
                     placement="right"
                     closable={false}
                     onClose={onPatientClose}
@@ -297,7 +319,8 @@ const LayoutPage = () => {
                             <Form.Item
                                 rules={[{required: true}]}
                                 label="客户号" name="id">
-                                <Input type='number'
+                                <Input disabled={isPatientEdit}
+                                       type='number'
                                        addonAfter={<div onClick={handleAddonClick} style={{cursor: 'pointer'}}>
                                            <FormOutlined/>
                                        </div>}/>
@@ -455,7 +478,7 @@ const LayoutPage = () => {
                         <Col span={12}>
                             <Form.Item
                                 label="患者备注" name="patientNotes">
-                                <Input/>
+                                <TextArea/>
                             </Form.Item>
                         </Col>
                     </Row>
