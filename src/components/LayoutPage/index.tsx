@@ -185,6 +185,7 @@ const LayoutPage = () => {
                 if (addPatientResponse.status === 200) {
                     message.success('成功新增患者')
                     onPatientClose()
+                    dispatch(renderPatient())
                 }
             }
 
