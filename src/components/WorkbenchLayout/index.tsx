@@ -48,7 +48,9 @@ const WorkbenchLayout = () => {
                     items={items}
                 />
             </Sider>
-            <Outlet />
+            <Layout>
+                <Outlet />
+            </Layout>
         </>
     )
 }

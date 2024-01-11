@@ -23,7 +23,6 @@ type AppAction =
 const ls = new SecureLS({encodingType: 'aes'});
 
 const savedPermissions = ls.get('permissions');
-console.log(savedPermissions)
 const initialPermissions = savedPermissions ? savedPermissions : [0];
 
 // 创建 reducer

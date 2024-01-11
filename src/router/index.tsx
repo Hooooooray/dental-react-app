@@ -40,7 +40,7 @@ const RouterView = () => {
     // 定义一个状态来保存路由配置
     const [routerConfig, setRouterConfig] = useState<RouterConfigType>(baseRoutes);
     const userPermissions = useSelector((state: AppState) => state.permissions);
-    console.log("userPermissions", userPermissions)
+    // console.log("userPermissions", userPermissions)
     // 根据权限动态添加路由
     useEffect(() => {
         interface Permission {

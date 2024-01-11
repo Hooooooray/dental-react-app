@@ -1,7 +1,23 @@
 import React, {useEffect, useState} from "react";
 import {Outlet, useNavigate, useLocation} from 'react-router-dom'
 import type {MenuProps, UploadFile, UploadProps} from 'antd';
-import {App, Button, Col, DatePicker, Drawer, Form, Input, Layout, Menu, Radio, Row, Select, Space, Upload} from 'antd';
+import {
+    App,
+    Button,
+    Col,
+    DatePicker,
+    Drawer,
+    Form,
+    Input,
+    Layout,
+    Menu,
+    Modal,
+    Radio,
+    Row,
+    Select,
+    Space,
+    Upload
+} from 'antd';
 import style from './style.module.scss'
 import {verifyUser} from "../../api/user";
 import {Cascader} from 'antd';
@@ -14,8 +30,10 @@ import {logoSrc} from "./logoSrc";
 import {useDispatch, useSelector} from "react-redux";
 import {AppState} from "../../store";
 import {closePatientDrawer, openPatientDrawer, renderPatient, setPatientEditClose} from "../../store/actions/actions";
+import {addRole} from "../../api/role";
+import {addAppointment} from "../../api/appointment";
 
-const { TextArea } = Input;
+const {TextArea} = Input;
 
 const {Header} = Layout;
 
@@ -61,19 +79,6 @@ const LayoutPage = () => {
     const navigate = useNavigate();
     const {message} = App.useApp();
     const [name, setName] = useState('')
-
-    useEffect(() => {
-        verifyUser().then(res => {
-            const user = res.data.data
-            setName(user.name)
-        }).catch(error => {
-            if (error.response && (error.response.status === 403 || error.response.status === 401)) {
-                message.warning('登录信息过期请重新登录')
-                navigate('/login')
-            }
-        })
-    }, [])
-
     const itemsUser: MenuItem[] = [
         {
             label: name,
@@ -97,11 +102,25 @@ const LayoutPage = () => {
         }
     ]
 
+    // 认证用户信息
+    useEffect(() => {
+        verifyUser().then(res => {
+            const user = res.data.data
+            setName(user.name)
+        }).catch(error => {
+            if (error.response && (error.response.status === 403 || error.response.status === 401)) {
+                message.warning('登录信息过期请重新登录')
+                navigate('/login')
+            }
+        })
+    }, [])
+
     const handleMenuClick = (menu: any) => {
         const {key} = menu
         navigate(key)
     }
 
+    // 处理用户点击
     const handleUserClick = (menu: any) => {
         const {key} = menu
         if (key === 'logout') {
@@ -112,19 +131,19 @@ const LayoutPage = () => {
         }
     }
 
-    // const [patientOpen, setPatientOpen] = useState(false)
-    const dispatch = useDispatch();
-    const patientOpen = useSelector((state:AppState) => state.patientOpen);
-    const isPatientEdit = useSelector((state:AppState) => state.isPatientEdit)
-    let patinetObj = useSelector((state:AppState)=>state.patientObj)
+    /*患者表单模块*/
+    // 全局状态，新增患者，编辑患者的表单
     const [patientForm] = Form.useForm();
+    const dispatch = useDispatch();
+    const patientOpen = useSelector((state: AppState) => state.patientOpen);
+    const isPatientEdit = useSelector((state: AppState) => state.isPatientEdit)
+    let patinetObj = useSelector((state: AppState) => state.patientObj)
 
-    useEffect(()=>{
-        console.log(patinetObj)
-        if (isPatientEdit){
+    useEffect(() => {
+        if (isPatientEdit) {
             patientForm.setFieldsValue(patinetObj)
         }
-    },[patinetObj])
+    }, [patinetObj])
     const clickAddPatient = () => {
         handleAddonClick()
         dispatch(openPatientDrawer())
@@ -134,7 +153,7 @@ const LayoutPage = () => {
         patientForm.resetFields();
         dispatch(closePatientDrawer())
     };
-
+    // 患者表单确认成功
     const onPatientFinish = async () => {
         try {
             const data = patientForm.getFieldsValue();
@@ -149,19 +168,19 @@ const LayoutPage = () => {
             if (data.age) {
                 data.age = Number(data.age)
             }
-            if (data.avatar){
+            if (data.avatar) {
                 // @ts-ignore
                 data.avatar = imageUrl.split(',')[1]
             }
-            if (isPatientEdit){
+            if (isPatientEdit) {
                 console.log(data)
                 const editPatientResponse = await editPatient(data)
-                if(editPatientResponse.status === 200){
+                if (editPatientResponse.status === 200) {
                     message.success('修改患者信息成功')
                     onPatientClose()
                     dispatch(renderPatient())
                 }
-            }else {
+            } else {
                 const addPatientResponse = await addPatient(data)
                 if (addPatientResponse.status === 200) {
                     message.success('成功新增患者')
@@ -174,14 +193,12 @@ const LayoutPage = () => {
             message.error('添加失败')
         }
     };
-
-
-    // 表单确认失败
+    // 患者表单确认失败
     const onPatientFinishFailed = (errorInfo: object) => {
         message.warning('请完成必要字段的填写')
         console.log('Failed:', errorInfo);
     };
-
+    // 点击获取患者id
     const handleAddonClick = async () => {
         try {
             const res = await getMaxPatientID()
@@ -193,7 +210,40 @@ const LayoutPage = () => {
             console.error(error)
         }
     };
+    /*患者表单模块*/
 
+    /*新增预约模块*/
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [appointmentForm] = Form.useForm()
+    const handleCancel = () => {
+        setIsModalOpen(false);
+        appointmentForm.resetFields()
+    };
+
+    const onAppointmentFinish = async () => {
+        try {
+            const data = appointmentForm.getFieldsValue();
+            const response = await addAppointment({data})
+            if (response.status === 200) {
+                message.success('新增预约成功')
+                setIsModalOpen(false)
+            }
+        } catch (error) {
+            console.error(error);
+            message.error('新增失败')
+        }
+    }
+
+    const onAppointmentFinishFailed = (errorInfo: object) => {
+        message.warning('请完成必要字段的填写')
+        console.log('Failed:', errorInfo);
+    }
+    const clickAddAppointment = () => {
+        setIsModalOpen(true);
+    }
+    /*新增预约模块*/
+
+    /*处理图片上传模块*/
     const options = formatAreaData(areaData['86']); // '86' 是中国的国家代码
 
     const normFile = (e: { fileList: any; }) => {
@@ -221,35 +271,36 @@ const LayoutPage = () => {
         return isJpgOrPng && isLt2M;
     };
 
-        const [loading, setLoading] = useState(false);
-        const [imageUrl, setImageUrl] = useState<string>();
+    const [loading, setLoading] = useState(false);
+    const [imageUrl, setImageUrl] = useState<string>();
 
-        const handleChange: UploadProps['onChange'] = (info: UploadChangeParam<UploadFile>) => {
-            if (info.file.status === 'uploading') {
-                setLoading(true);
-                return;
-            }
-            if (info.file.status === 'done') {
-                // Get this url from response in real world.
-                getBase64(info.file.originFileObj as RcFile, (url) => {
-                    setLoading(false);
-                    setImageUrl(url);
-                });
-            }
-        };
+    const handleChange: UploadProps['onChange'] = (info: UploadChangeParam<UploadFile>) => {
+        if (info.file.status === 'uploading') {
+            setLoading(true);
+            return;
+        }
+        if (info.file.status === 'done') {
+            // Get this url from response in real world.
+            getBase64(info.file.originFileObj as RcFile, (url) => {
+                setLoading(false);
+                setImageUrl(url);
+            });
+        }
+    };
 
-        const uploadButton = (
-            <button style={{ border: 0, background: 'none' }} type="button">
-                {loading ? <LoadingOutlined /> : <PlusOutlined />}
-                <div style={{ marginTop: 8 }}>Upload</div>
-            </button>
-        );
+    const uploadButton = (
+        <button style={{border: 0, background: 'none'}} type="button">
+            {loading ? <LoadingOutlined/> : <PlusOutlined/>}
+            <div style={{marginTop: 8}}>Upload</div>
+        </button>
+    );
+    /*处理图片上传模块*/
 
 
-        return (
+    return (
         <div>
             <Layout>
-                <Header className={style.test} style={headerStyle}>
+                <Header style={headerStyle}>
                     <div style={{display: "flex", alignItems: "center"}}>
                         <img width={104}
                              src={logoSrc}
@@ -263,7 +314,12 @@ const LayoutPage = () => {
                             style={{backgroundColor: "#ffffff00"}}
                         />
                     </div>
-                    <Button style={{marginLeft: '20px'}} type={"primary"} onClick={clickAddPatient}>新增患者</Button>
+                    <div>
+                        <Button style={{marginLeft: '20px'}} type={"primary"}
+                                onClick={clickAddPatient}>新增患者</Button>
+                        <Button style={{marginLeft: '20px'}} type={"primary"}
+                                onClick={clickAddAppointment}>新增预约</Button>
+                    </div>
                     <Menu
                         items={itemsUser}
                         style={{backgroundColor: "#ffffff00"}}
@@ -277,9 +333,43 @@ const LayoutPage = () => {
                     <Outlet/>
                 </Layout>
             </Layout>
-
+            <Modal title="新增预约" open={isModalOpen} onOk={() => {
+                appointmentForm.submit()
+            }} onCancel={handleCancel}>
+                <Form
+                    form={appointmentForm}
+                    onFinish={onAppointmentFinish}
+                    onFinishFailed={onAppointmentFinishFailed}
+                >
+                    <Form.Item
+                        rules={[{required: true}]}
+                        label="患者" name="patient">
+                        <Input/>
+                    </Form.Item>
+                    <Form.Item
+                        rules={[{required: true}]}
+                        label="医生" name="employee">
+                        <Input/>
+                    </Form.Item>
+                    <Form.Item
+                        rules={[{required: true}]}
+                        label="预约项目" name="service">
+                        <Input/>
+                    </Form.Item>
+                    <Form.Item
+                        rules={[{required: true}]}
+                        label="预约状态" name="status">
+                        <Input/>
+                    </Form.Item>
+                    <Form.Item
+                        rules={[{required: true}]}
+                        label="预约时间" name="appointmentTime">
+                        <Input/>
+                    </Form.Item>
+                </Form>
+            </Modal>
             <Drawer size={"large"}
-                    title={isPatientEdit? '修改患者信息':'新增患者'}
+                    title={isPatientEdit ? '修改患者信息' : '新增患者'}
                     placement="right"
                     closable={false}
                     onClose={onPatientClose}
@@ -524,7 +614,7 @@ const LayoutPage = () => {
                             beforeUpload={beforeUpload}
                             onChange={handleChange}
                         >
-                            {imageUrl ? <img src={imageUrl} alt="avatar" style={{ width: '100%' }} /> : uploadButton}
+                            {imageUrl ? <img src={imageUrl} alt="avatar" style={{width: '100%'}}/> : uploadButton}
                         </Upload>
                     </Form.Item>
 

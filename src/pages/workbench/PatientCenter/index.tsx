@@ -125,7 +125,6 @@ const PatientCenter = () => {
                 if (response.status === 200) {
                     let patients = response.data.data
                     setTotal(response.data.total)
-                    console.log(response.data)
                     setPatientData(patients.map((patient: Patient) => {
                         const formattedPatient: any = {
                             ...patient,
@@ -146,7 +145,7 @@ const PatientCenter = () => {
                             const addressDistrict = areaData[addressCityCode][addressDistrictCode]
                             formattedPatient.address = `${addressProvince} ${addressCity} ${addressDistrict}`
                         }
-                        console.log(formattedPatient.avatar)
+                        // console.log('getPatients avatar',formattedPatient.avatar)
                         return formattedPatient;
 
                     }))
@@ -173,21 +172,20 @@ const PatientCenter = () => {
     }
 
     const onTodayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPage(1)
         setIsTodayOnly(e.target.checked)
-        const newTotal = total - 1;
-        const newTotalPages = Math.ceil(newTotal / pageSize);
-        if (page > newTotalPages) {
-            // 如果当前页超过了新的总页数，将页码减一
-            setPage(newTotalPages);
-        }
     }
-    const onPatientSearchFinishFailed = () => {
-
+    const onPatientSearchFinishFailed = (errorInfo: object) => {
+        console.log('Failed:', errorInfo);
     }
 
     const handleChangePage = (page: number, pageSize: number) => {
         setPage(page)
         setPageSize(pageSize)
+    }
+
+    const clickName = (record:any)=>{
+        const id = record.id
     }
 
 
@@ -203,15 +201,15 @@ const PatientCenter = () => {
         },
         {
             title: '患者',
-            width: 100,
+            width: 120,
             dataIndex: 'name',
             key: 'name',
             fixed: "left",
             sorter: true,
             render: (text, record) => (
                 <Space>
-                    {record.avatar ? <Avatar src={`data:image/jpeg;base64,${record.avatar.data}`} /> : <Avatar icon={<UserOutlined />}/>}
-                    {text}
+                    {record.avatar ? <Avatar shape="square" src={`data:image/jpeg;base64,${record.avatar}`} /> : <Avatar shape="square" icon={<UserOutlined />}/>}
+                    {<a onClick={()=>clickName(record)}>{text}</a>}
                 </Space>
             ),
         },
@@ -368,7 +366,7 @@ const PatientCenter = () => {
                     onFinish={onPatientSearchFinish}
                     onFinishFailed={onPatientSearchFinishFailed}
                 >
-                    <Row>
+                    <Row style={{minWidth:"800px"}}>
                             <Form.Item label="仅显示今日新增患者" name="onlyTody">
                                 <Input style={{width:"15px",height:"15px"}} checked={isTodayOnly} type="checkbox" onChange={onTodayChange}/>
                             </Form.Item>
@@ -376,7 +374,7 @@ const PatientCenter = () => {
                                 导出为 Excel
                             </Button>
                     </Row>
-                    <Row>
+                    <Row style={{minWidth:"785px"}}>
                         <Space>
                             <Form.Item
                                 label="客户号" name="id">
@@ -402,7 +400,9 @@ const PatientCenter = () => {
 
                 </Form>
 
-                <Table size={"small"}
+                <Table
+                        style={{minWidth:"440px"}}
+                        size={"small"}
                        pagination={false}
                        bordered={true}
                        columns={patientColumns}
