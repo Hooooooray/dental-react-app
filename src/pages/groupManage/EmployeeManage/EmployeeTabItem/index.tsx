@@ -11,7 +11,7 @@ import {
     Row,
     Col,
     Table,
-    Popconfirm, Pagination, App,
+    Popconfirm, Pagination, App, Modal, Flex,
 } from "antd";
 import {PlusOutlined, QuestionCircleOutlined} from "@ant-design/icons";
 import 'dayjs/locale/zh-cn';
@@ -26,12 +26,14 @@ import {
 import type {ColumnsType} from 'antd/es/table';
 import dayjs from "dayjs";
 import {useNavigate} from "react-router-dom";
+import {addRole, getRoles} from "../../../../api/role";
+import {editUser, findByEmployee, register} from "../../../../api/user";
 
 
 const EmployeeTabItem = () => {
     interface EmployeeDataType {
         key: React.Key;
-        employeeID: number;
+        id: number;
         name: string;
         position: string;
         department: string;
@@ -44,8 +46,8 @@ const EmployeeTabItem = () => {
         {
             title: '员工号',
             width: 90,
-            dataIndex: 'employeeID',
-            key: 'employeeID',
+            dataIndex: 'id',
+            key: 'id',
         },
         {
             title: '姓名',
@@ -130,21 +132,23 @@ const EmployeeTabItem = () => {
             key: 'operation',
             fixed: 'right',
             render: (record) => (
-                <Space>
-                    <Button onClick={() => handleEditEmployee(record)}>编辑</Button>
-                    {/*<Button onClick={() => handleDeleteEmployee(record)}>删除</Button>*/}
-                    <Popconfirm
-                        title="提示"
-                        description="确定要删除此员工信息？"
-                        okText="确定"
-                        cancelText="取消"
-                        placement="topRight"
-                        icon={<QuestionCircleOutlined style={{color: 'red'}}/>}
-                        onConfirm={() => handleDeleteEmployee(record)}
-                    >
-                        <Button danger>删除</Button>
-                    </Popconfirm>
-                </Space>
+                <Flex justify="right">
+                    <Space>
+                        {record.id !== 1 && <Button onClick={() => handleConfigureUser(record)}>账号配置</Button>}
+                        <Button onClick={() => handleEditEmployee(record)}>编辑</Button>
+                        <Popconfirm
+                            title="提示"
+                            description="确定要删除此员工信息？"
+                            okText="确定"
+                            cancelText="取消"
+                            placement="topRight"
+                            icon={<QuestionCircleOutlined style={{color: 'red'}}/>}
+                            onConfirm={() => handleDeleteEmployee(record)}
+                        >
+                            <Button danger>删除</Button>
+                        </Popconfirm>
+                    </Space>
+                </Flex>
             ),
 
         },
@@ -170,7 +174,7 @@ const EmployeeTabItem = () => {
     // 渲染列表
     const renderEmployeeTable = () => {
         interface Employee {
-            employeeID: number;
+            id: number;
             name: string;
             position: string;
             department: string;
@@ -185,11 +189,10 @@ const EmployeeTabItem = () => {
                 if (response.status === 200) {
                     let employees = response.data.data
                     setTotal(response.data.total)
-                    console.log(response.data)
                     setEmployeeData(employees.map((employee: Employee) => {
                         const formattedEmployee = {
                             ...employee,
-                            key: employee.employeeID,
+                            key: employee.id,
                         };
                         if (employee.hireDate) {
                             formattedEmployee.hireDate = dayjs(employee.hireDate).format('YYYY年MM月DD日');
@@ -217,13 +220,12 @@ const EmployeeTabItem = () => {
         setEmployeeOpen(true)
         try {
             const response = await getMaxEmployeeID();
-            console.log(response)
             if (response.status === 200) {
-                if (response.data.data && response.data.data.employeeID) {
-                    const newID = response.data.data.employeeID + 1;
-                    employeeForm.setFieldValue('employeeID', newID);
+                if (response.data.data && response.data.data.id) {
+                    const newID = response.data.data.id + 1;
+                    employeeForm.setFieldValue('id', newID);
                 } else {
-                    employeeForm.setFieldValue('employeeID', 1);
+                    employeeForm.setFieldValue('id', 1);
                 }
             }
         } catch (error) {
@@ -236,9 +238,9 @@ const EmployeeTabItem = () => {
     const handleEditEmployee = async (record: EmployeeDataType) => {
         setIsEmployeeEdit(true)
         setEmployeeOpen(true)
-        let employeeID = record.employeeID
+        let id = record.id
         try {
-            const response = await getEmployee(employeeID)
+            const response = await getEmployee(id)
             if (response.status === 200) {
                 let oldEmployee = response.data.data
                 if (oldEmployee.birthDate) {
@@ -247,7 +249,6 @@ const EmployeeTabItem = () => {
                 if (oldEmployee.hireDate) {
                     oldEmployee.hireDate = dayjs(oldEmployee.hireDate)
                 }
-                console.log(oldEmployee)
                 employeeForm.setFieldsValue(oldEmployee)
             }
         } catch (error) {
@@ -258,9 +259,9 @@ const EmployeeTabItem = () => {
 
     // 处理删除员工
     const handleDeleteEmployee = async (record: EmployeeDataType) => {
-        let employeeID = record.employeeID
+        let id = record.id
         try {
-            const response = await deleteEmployee(employeeID)
+            const response = await deleteEmployee(id)
             if (response.status === 200) {
                 const newTotal = total - 1;
                 const newTotalPages = Math.ceil(newTotal / pageSize);
@@ -295,7 +296,7 @@ const EmployeeTabItem = () => {
     const onEmployeeFinish = async () => {
         try {
             const data = employeeForm.getFieldsValue();
-            data.employeeID = Number(data.employeeID);
+            data.id = Number(data.id);
             if (isEmployeeEdit) {
                 const editResponse = await editEmployee(data)
                 if (editResponse.status === 200) {
@@ -327,11 +328,97 @@ const EmployeeTabItem = () => {
         console.log('Failed:', errorInfo);
     };
 
-
     const handleChangePage = (page: number, pageSize: number) => {
         setPage(page)
         setPageSize(pageSize)
     }
+
+    const [isAccountOpen, setIsAccountOpen] = useState(false)
+    const [isExistAccount, setIsExistAccount] = useState(false)
+    const [roleOptions, setRoleOptions] = useState([])
+    const [accountForm] = Form.useForm()
+
+    useEffect(() => {
+        getRoles(1, 100)
+            .then(response => {
+                if (response.status === 200) {
+                    const roles = response.data.data
+                    const roleOptionsArr = roles.map((role: any) => {
+                        return {
+                            label: role.roleName,
+                            value: role.id
+                        }
+                    })
+                    setRoleOptions(roleOptionsArr)
+                }
+            })
+            .catch(error => {
+                console.error(error)
+            })
+    }, [])
+
+
+    const handleConfigureUser = async (record: EmployeeDataType) => {
+        try {
+            const employeeId = record.id
+            const userResponse = await findByEmployee({employeeId})
+            if (userResponse.status === 200) {
+                if (userResponse.data.success === true) {
+                    message.warning('已存在账户信息，请配置')
+                    setIsExistAccount(true)
+                    const user = userResponse.data.data
+                    accountForm.setFieldsValue(user)
+
+                } else {
+                    message.warning('暂未配置用户信息，请配置')
+                    setIsExistAccount(false)
+                    accountForm.setFieldValue('employeeId',employeeId)
+                }
+                setIsAccountOpen(true)
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    const handleAccountCancel = () => {
+        setIsAccountOpen(false);
+        accountForm.resetFields()
+    };
+    const onAccountFinish = async () => {
+        try {
+            const data = accountForm.getFieldsValue();
+            console.log(data)
+            if (isExistAccount) {
+                //     编辑
+                const response = await editUser(data)
+                if (response.status === 200) {
+                    message.success('配置成功')
+                    setIsAccountOpen(false)
+                    accountForm.resetFields()
+                }
+            } else {
+                //     注册
+                const response = await register(data)
+                if (response.status === 200) {
+                    message.success('配置成功')
+                    setIsAccountOpen(false)
+                    accountForm.resetFields()
+                }
+            }
+
+        } catch (error) {
+            console.error(error);
+            message.error('配置失败')
+        }
+    }
+
+    const onAccountFinishFailed = (errorInfo: object) => {
+        message.warning('请完成必要字段的填写')
+        console.log('Failed:', errorInfo);
+    }
+
+
     return (
         <>
             <div style={{padding: '16px 16px 0 16px'}}>
@@ -339,6 +426,50 @@ const EmployeeTabItem = () => {
                     <Button icon={<PlusOutlined/>} onClick={addDepartment}>新增部门</Button>
                     <Button icon={<PlusOutlined/>} onClick={clickAddEmployee}>新增员工</Button>
                 </Space>
+                <Modal title="配置账号信息" open={isAccountOpen} onOk={() => {
+                    accountForm.submit()
+                }} onCancel={handleAccountCancel}>
+                    <Form
+                        form={accountForm}
+                        onFinish={onAccountFinish}
+                        onFinishFailed={onAccountFinishFailed}
+                    >
+                        <Form.Item
+                            rules={[{required: true}]}
+                            label="账户" name="username">
+                            <Input/>
+                        </Form.Item>
+                        <Form.Item
+                            rules={[{required: true}]}
+                            label="密码" name="password">
+                            <Input/>
+                        </Form.Item>
+                        <Form.Item
+                            label="昵称" name="name">
+                            <Input/>
+                        </Form.Item>
+                        <Form.Item
+                            label="手机号码" name="phone">
+                            <Input type="number"/>
+                        </Form.Item>
+                        <Form.Item
+                            label="用户角色" name="roleId">
+                            <Select
+                                options={roleOptions}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            style={{display:"none"}}
+                            label="userId" name="id">
+                            <Input/>
+                        </Form.Item>
+                        <Form.Item
+                            style={{display:"none"}}
+                            label="employeeId" name="employeeId">
+                            <Input/>
+                        </Form.Item>
+                    </Form>
+                </Modal>
                 <Table size={"small"}
                        pagination={false}
                        bordered={true}
@@ -397,7 +528,7 @@ const EmployeeTabItem = () => {
                             <Col span={12}>
                                 <Form.Item
                                     rules={[{required: true}]}
-                                    label="员工号" name="employeeID">
+                                    label="员工号" name="id">
                                     <Input type='number' disabled={isEmployeeEdit}/>
                                 </Form.Item>
                             </Col>

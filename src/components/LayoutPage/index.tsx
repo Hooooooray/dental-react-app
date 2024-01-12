@@ -1,9 +1,12 @@
-import React, {useEffect, useState} from "react";
-import {Outlet, useNavigate, useLocation} from 'react-router-dom'
-import type {MenuProps, UploadFile, UploadProps} from 'antd';
+import React, {useEffect, useMemo, useRef, useState} from "react";
+import {Outlet, useLocation, useNavigate} from 'react-router-dom'
+import type {MenuProps, SelectProps, UploadFile, UploadProps} from 'antd';
+import type { RangePickerProps } from 'antd/es/date-picker';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {
     App,
     Button,
+    Cascader,
     Col,
     DatePicker,
     Drawer,
@@ -16,22 +19,27 @@ import {
     Row,
     Select,
     Space,
+    Spin,
     Upload
 } from 'antd';
+// @ts-ignore
+import debounce from 'lodash/debounce';
 import style from './style.module.scss'
 import {verifyUser} from "../../api/user";
-import {Cascader} from 'antd';
 import areaData from 'china-area-data/v5/data';
-import {addPatient, editPatient, getMaxPatientID} from "../../api/patient";
-import {FormOutlined, PlusOutlined, LoadingOutlined} from '@ant-design/icons';
+import {addPatient, editPatient, getMaxPatientID, searchPatients} from "../../api/patient";
+import {FormOutlined, LoadingOutlined, PlusOutlined} from '@ant-design/icons';
 import {formatAreaData} from "./area";
 import {RcFile, UploadChangeParam} from "antd/es/upload";
 import {logoSrc} from "./logoSrc";
 import {useDispatch, useSelector} from "react-redux";
 import {AppState} from "../../store";
 import {closePatientDrawer, openPatientDrawer, renderPatient, setPatientEditClose} from "../../store/actions/actions";
-import {addRole} from "../../api/role";
 import {addAppointment} from "../../api/appointment";
+import {searchEmployees} from "../../api/employee";
+import dayjs from "dayjs";
+dayjs.extend(customParseFormat);
+const { RangePicker } = DatePicker;
 
 const {TextArea} = Input;
 
@@ -72,6 +80,61 @@ const items: MenuItem[] = [
     getItem('工作台', '/workbench'),
     getItem('机构管理', '/groupManage')
 ]
+
+export interface DebounceSelectProps<ValueType = any>
+    extends Omit<SelectProps<ValueType | ValueType[]>, 'options' | 'children'> {
+    fetchOptions: (search: string) => Promise<ValueType[]>;
+    debounceTimeout?: number;
+}
+
+function DebounceSelect<
+    ValueType extends { key?: string; label: React.ReactNode; value: string | number } = any,
+>({fetchOptions, debounceTimeout = 500, ...props}: DebounceSelectProps<ValueType>) {
+    const [fetching, setFetching] = useState(false);
+    const [options, setOptions] = useState<ValueType[]>([]);
+    const fetchRef = useRef(0);
+
+    const debounceFetcher = useMemo(() => {
+        const loadOptions = (value: string) => {
+            fetchRef.current += 1;
+            const fetchId = fetchRef.current;
+            setOptions([]);
+            setFetching(true);
+
+            fetchOptions(value).then((newOptions) => {
+                if (fetchId !== fetchRef.current) {
+                    // for fetch callback order
+                    return;
+                }
+
+                setOptions(newOptions);
+                setFetching(false);
+            });
+        };
+
+        return debounce(loadOptions, debounceTimeout);
+    }, [fetchOptions, debounceTimeout]);
+
+    return (
+        <Select
+            labelInValue
+            filterOption={false}
+            onSearch={debounceFetcher}
+            notFoundContent={fetching ? <Spin size="small"/> : null}
+            {...props}
+            options={options}
+        />
+    );
+}
+
+// Usage of DebounceSelect
+interface ListValue {
+    label: string;
+    value: string;
+}
+
+
+
 
 const LayoutPage = () => {
     const location = useLocation();
@@ -215,16 +278,83 @@ const LayoutPage = () => {
 
     /*新增预约模块*/
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [patientValue, setPatientValue] = useState<ListValue | undefined>();
+    const [doctorValue, setDoctorValue] = useState<ListValue | undefined>();
     const [appointmentForm] = Form.useForm()
-    const handleCancel = () => {
-        setIsModalOpen(false);
-        appointmentForm.resetFields()
+
+    const fetchPatientList = async (keyword: string) => {
+        console.log(keyword)
+        try {
+            const response = await searchPatients(keyword)
+            if (response.status === 200) {
+                const responseData = response.data.data
+                console.log(responseData)
+                return responseData.map((item: { id: number; name: string }) => {
+                    return {
+                        label: item.name,
+                        value: item.id
+                    };
+                });
+            }
+        }catch (error){
+            console.log(error)
+        }
+    }
+    const fetchDoctorList = async (keyword: string) => {
+        console.log(keyword)
+        try {
+            const response = await searchEmployees(keyword)
+            if (response.status === 200) {
+                const responseData = response.data.data
+                console.log(responseData)
+                return responseData.map((item: { id: number; name: string }) => {
+                    return {
+                        label: item.name,
+                        value: item.id
+                    };
+                });
+            }
+        }catch (error){
+            console.log(error)
+        }
+    }
+
+    const range = (start: number, end: number) => {
+        const result = [];
+        for (let i = start; i < end; i++) {
+            result.push(i);
+        }
+        return result;
     };
+
+// eslint-disable-next-line arrow-body-style
+    const disabledDate: RangePickerProps['disabledDate'] = (current) => {
+        // 获取今天日期的 midnight（午夜）
+        const today = dayjs().endOf('day');
+        // 获取十四天后的日期的 midnight
+        const fourteenDaysLater = dayjs().add(14, 'day').startOf('day');
+
+        // 禁用今天之前的日期和十四天后的日期
+        return current && (current < today || current >= fourteenDaysLater);
+    };
+
+    const disabledDateTime = () => ({
+        disabledHours: () => range(0, 8).concat(range(22, 24)),
+    });
+
+
 
     const onAppointmentFinish = async () => {
         try {
-            const data = appointmentForm.getFieldsValue();
-            const response = await addAppointment({data})
+            const appointmentFormdata = appointmentForm.getFieldsValue();
+            const data = {
+                appointmentTime: appointmentFormdata.appointmentTime,
+                service: appointmentFormdata.service,
+                patientId: appointmentFormdata.patient.value,
+                employeeId: appointmentFormdata.employee.value
+            }
+            console.log(data)
+            const response = await addAppointment(data)
             if (response.status === 200) {
                 message.success('新增预约成功')
                 setIsModalOpen(false)
@@ -242,6 +372,10 @@ const LayoutPage = () => {
     const clickAddAppointment = () => {
         setIsModalOpen(true);
     }
+    const handleCancel = () => {
+        setIsModalOpen(false);
+        appointmentForm.resetFields()
+    };
     /*新增预约模块*/
 
     /*处理图片上传模块*/
@@ -345,27 +479,54 @@ const LayoutPage = () => {
                     <Form.Item
                         rules={[{required: true}]}
                         label="患者" name="patient">
-                        <Input/>
+                        <DebounceSelect
+                            showSearch
+                            value={patientValue}
+                            placeholder="选择患者"
+                            fetchOptions={fetchPatientList}
+                            onChange={(newValue: any) => {
+                                setPatientValue(newValue);
+                            }}
+                            style={{width: '100%'}}
+                        />
                     </Form.Item>
                     <Form.Item
                         rules={[{required: true}]}
                         label="医生" name="employee">
-                        <Input/>
+                        <DebounceSelect
+                            showSearch
+                            value={doctorValue}
+                            placeholder="选择医生"
+                            fetchOptions={fetchDoctorList}
+                            onChange={(newValue: any) => {
+                                setDoctorValue(newValue);
+                            }}
+                            style={{width: '100%'}}
+                        />
                     </Form.Item>
                     <Form.Item
                         rules={[{required: true}]}
                         label="预约项目" name="service">
-                        <Input/>
-                    </Form.Item>
-                    <Form.Item
-                        rules={[{required: true}]}
-                        label="预约状态" name="status">
-                        <Input/>
+                        <Select>
+                            <Select.Option value="TOOTH_EXTRACTION">拔牙</Select.Option>
+                            <Select.Option value="TOOTH_FILLING">补牙</Select.Option>
+                            <Select.Option value="TOOTH_IMPLANTATION">种牙</Select.Option>
+                            <Select.Option value="TOOTH_INLAY">镶牙</Select.Option>
+                            <Select.Option value="ORTHODONTICS">正畸</Select.Option>
+                            <Select.Option value="TEETH_CLEANING">洗牙</Select.Option>
+                        </Select>
                     </Form.Item>
                     <Form.Item
                         rules={[{required: true}]}
                         label="预约时间" name="appointmentTime">
-                        <Input/>
+                        <DatePicker
+                            format="YYYY-MM-DD HH:mm:ss"
+                            disabledDate={disabledDate}
+                            disabledTime={disabledDateTime}
+                            showTime={{ defaultValue: dayjs('00:00:00', 'HH:mm:ss'), }}
+                            showNow = {false}
+                        />
+
                     </Form.Item>
                 </Form>
             </Modal>

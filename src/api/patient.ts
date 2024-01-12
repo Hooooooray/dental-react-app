@@ -38,6 +38,10 @@ export const getPatients = (page: number, pageSize: number, id?: string, name?: 
     })
 }
 
+export const searchPatients = (keyword:string) =>{
+    return $api.get('/searchPatients',{params:{keyword}})
+}
+
 export const editPatient = (data: PatientType) => {
     return $api.post('/patient/edit', data)
 }
