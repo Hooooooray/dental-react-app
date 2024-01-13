@@ -7,16 +7,18 @@ import doctorShift from "./appointTabs/doctorShift";
 import shiftSetting from "./appointTabs/shiftSetting";
 
 const items: TabsProps['items'] = [
+
     {
         key: '1',
+        label: '预约查询',
+        children: appointmentSearch,
+    },
+    {
+        key: '2',
         label: '预约视图',
         children: appointmentView,
     },
     {
-        key: '2',
-        label: '预约查询',
-        children: appointmentSearch,
-    },{
         key: '3',
         label: '医生班次',
         children: doctorShift,

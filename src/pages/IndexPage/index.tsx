@@ -1,6 +1,8 @@
 import React, {useState} from "react";
-import {App, Form, Input, Layout, Menu, MenuProps, Modal} from "antd";
-import {addRole} from "../../api/role";
+import {Layout, Menu, Tabs, TabsProps} from "antd";
+import todayAppointment from "./indexTabs/todayAppointment";
+import todaySeeADoctor from "./indexTabs/todaySeeADoctor";
+import dailyNews from "./indexTabs/dailyNews";
 const {Header,Content} = Layout
 
 const headerStyle: React.CSSProperties = {
@@ -16,54 +18,35 @@ const headerStyle: React.CSSProperties = {
     borderBottom:"solid 1px #E6E6E6"
 };
 
-type MenuItem = Required<MenuProps>['items'][number];
-
-function getItem(
-    label: React.ReactNode,
-    key: React.Key,
-    icon?: React.ReactNode,
-    children?: MenuItem[],
-    type?: 'group',
-): MenuItem {
-    return {
-        label,
-        key,
-        icon,
-        children,
-        type,
-    } as MenuItem;
-}
-
-const items: MenuItem[] = [
-    getItem('今日预约', 'order'),
-    getItem('今日就诊', 'SeeADoctor'),
-    getItem('今日咨询', 'consult'),
-]
-
+const items: TabsProps['items'] = [
+    {
+        key: '1',
+        label: '今日预约',
+        children:todayAppointment
+    },
+    {
+        key: '2',
+        label: '今日就诊',
+        children: todaySeeADoctor
+    },
+    {
+        key: '3',
+        label: '今日资讯',
+        children: dailyNews
+    },
+];
 
 
 const IndexPage = () => {
-    const [selectedKey, setSelectedKey] = useState('order')
-
-    const handleMenuClick = (menu: any) => {
-        const {key} = menu
-        setSelectedKey(key)
-    }
+    const onChange = (key: string) => {
+        console.log(key);
+    };
 
     return (
         <>
             <Layout>
-                <Header style={headerStyle}>
-                    <Menu
-                        style={{paddingLeft:"7.5px"}}
-                        onClick={handleMenuClick}
-                        mode="horizontal"
-                        selectedKeys={[`${selectedKey}`]}
-                        items={items}
-                    />
-                </Header>
                 <Content>
-
+                    <Tabs type='card' defaultActiveKey="1" items={items} onChange={onChange}/>
                 </Content>
             </Layout>
         </>

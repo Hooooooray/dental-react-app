@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import {Outlet, useLocation, useNavigate} from 'react-router-dom'
 import type {MenuProps, SelectProps, UploadFile, UploadProps} from 'antd';
-import type { RangePickerProps } from 'antd/es/date-picker';
+import type {RangePickerProps} from 'antd/es/date-picker';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import {
     App,
@@ -38,8 +38,9 @@ import {closePatientDrawer, openPatientDrawer, renderPatient, setPatientEditClos
 import {addAppointment} from "../../api/appointment";
 import {searchEmployees} from "../../api/employee";
 import dayjs from "dayjs";
+
 dayjs.extend(customParseFormat);
-const { RangePicker } = DatePicker;
+const {RangePicker} = DatePicker;
 
 const {TextArea} = Input;
 
@@ -134,8 +135,6 @@ interface ListValue {
 }
 
 
-
-
 const LayoutPage = () => {
     const location = useLocation();
     const path = location.pathname.split('/')[1]
@@ -171,7 +170,11 @@ const LayoutPage = () => {
             const user = res.data.data
             setName(user.name)
         }).catch(error => {
-            if (error.response && (error.response.status === 403 || error.response.status === 401)) {
+            if (error.response && error.response.status === 401) {
+                message.warning('请先登录')
+                navigate('/login')
+            }
+            if (error.response && (error.response.status === 403)) {
                 message.warning('登录信息过期请重新登录')
                 navigate('/login')
             }
@@ -296,7 +299,7 @@ const LayoutPage = () => {
                     };
                 });
             }
-        }catch (error){
+        } catch (error) {
             console.log(error)
         }
     }
@@ -314,7 +317,7 @@ const LayoutPage = () => {
                     };
                 });
             }
-        }catch (error){
+        } catch (error) {
             console.log(error)
         }
     }
@@ -341,7 +344,6 @@ const LayoutPage = () => {
     const disabledDateTime = () => ({
         disabledHours: () => range(0, 8).concat(range(22, 24)),
     });
-
 
 
     const onAppointmentFinish = async () => {
@@ -523,8 +525,8 @@ const LayoutPage = () => {
                             format="YYYY-MM-DD HH:mm:ss"
                             disabledDate={disabledDate}
                             disabledTime={disabledDateTime}
-                            showTime={{ defaultValue: dayjs('00:00:00', 'HH:mm:ss'), }}
-                            showNow = {false}
+                            showTime={{defaultValue: dayjs('00:00:00', 'HH:mm:ss'),}}
+                            showNow={false}
                         />
 
                     </Form.Item>
