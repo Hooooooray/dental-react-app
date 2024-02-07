@@ -1,22 +1,21 @@
 import React from "react";
 import {Tabs} from "antd";
 import type {TabsProps} from 'antd';
-import appointmentView from "./appointTabs/appointmentView";
-import appointmentSearch from "./appointTabs/appointmentSearch";
 import doctorShift from "./appointTabs/doctorShift";
 import shiftSetting from "./appointTabs/shiftSetting";
+import AppointmentView from "./appointTabs/AppointmentView";
+import appointmentSearch from "./appointTabs/appointmentSearch";
 
 const items: TabsProps['items'] = [
-
     {
         key: '1',
-        label: '预约查询',
-        children: appointmentSearch,
+        label: '预约视图',
+        children: <AppointmentView />,
     },
     {
         key: '2',
-        label: '预约视图',
-        children: appointmentView,
+        label: '预约查询',
+        children: appointmentSearch,
     },
     {
         key: '3',
@@ -35,7 +34,7 @@ const AppointCenter = ()=>{
         console.log(key);
     };
     return(
-        <Tabs type='card' defaultActiveKey="1" items={items} onChange={onChange}/>
+        <Tabs style={{height:'calc(100vh - 48px)'}} type='card' defaultActiveKey="1" items={items} onChange={onChange}/>
     )
 }
 
