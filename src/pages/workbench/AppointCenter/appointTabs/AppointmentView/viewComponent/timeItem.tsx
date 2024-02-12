@@ -15,7 +15,7 @@ const timeItem = ()=>{
         </Flex>
     ));
     const timeItem = numbers12.map((number) => (
-        <>
+        <div key={number}>
             <Flex style={{borderBottom:"1px solid #E0E0E0",marginBottom:"-1px"}}>
                 <Flex justify={"center"} align={"center"}
                       style={{background: "#EEF5FE", height: "600px", width: "32px", fontSize: "16px"}}>{number+8}
@@ -24,7 +24,7 @@ const timeItem = ()=>{
                     {minutesItem}
                 </Flex>
             </Flex>
-        </>
+        </div>
     ))
     return(
         <>

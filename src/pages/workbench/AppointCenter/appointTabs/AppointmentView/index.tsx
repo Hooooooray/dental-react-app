@@ -58,14 +58,14 @@ const AppointmentView = () => {
 
     const [data, setData] = useState()
     useEffect(() => {
-        console.log(defaultData)
+        // console.log(defaultData)
         // @ts-ignore
         return setData(defaultData);
     }, [])
 
     const [dates, setDates] = useState([]);
     const onChange: DatePickerProps['onChange'] = (date) => {
-        console.log(date);
+        // console.log(date);
         if (date) {
             setCurrentWeek(dayjs(date).startOf('week'));
         }
@@ -74,17 +74,18 @@ const AppointmentView = () => {
     const fetchAppointments = async (startTime: any, endTime: any) => {
         const thisData = [...defaultData];
         const response = await getAppointments(startTime, endTime)
+        // console.log(response)
         if (response.status === 200 && response.data.data) {
             const appointmentData = response.data.data
             for (let appointment of appointmentData) {
-                console.log(appointment)
+                // console.log(appointment)
                 const appointmentDate = new Date(appointment.appointmentTime);
                 const startOfDay = new Date(appointmentDate);
                 startOfDay.setHours(8, 0, 0, 0); // 设置为当天早上 8 点
                 const appointmentMinutes = (appointmentDate.getTime() - startOfDay.getTime()) / (1000 * 60); // 计算预约时间距离早上 8 点经过的分钟数
                 const segmentNumber = Math.floor(appointmentMinutes / 5);
                 const week = startOfDay.getDay()
-                console.log(segmentNumber, week)
+                // console.log(segmentNumber, week)
 
                 let columnKey = '';
                 switch (week) {
@@ -125,7 +126,7 @@ const AppointmentView = () => {
         }
         // @ts-ignore
         setData(thisData)
-        console.log(thisData)
+        // console.log(thisData)
     }
 
     // 设置初始日期为当前周的开始（星期一）
@@ -185,7 +186,6 @@ const AppointmentView = () => {
                 height: 'calc(100vh - 715px)',
                 display: "flex",
                 flexDirection:"row",
-                alignItems: "center",
                 padding:"5px"
             }}>
                 <div>

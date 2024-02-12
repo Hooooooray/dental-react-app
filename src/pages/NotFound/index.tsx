@@ -29,7 +29,7 @@ const NotFound = () => {
             <Content style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
                 <div style={{display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center"}}>
                     <Empty description={`页面未找到或你无权访问此页面`} />
-                    <h3 style={{fontWeight:"normal"}}><a style={{fontSize:"30px"}} href="javascript:void(0)">{seconds}</a>秒后返回首页</h3>
+                    <h3 style={{fontWeight:"normal"}}><a style={{fontSize:"30px"}} href="/">{seconds}</a>秒后返回首页</h3>
                     <a  href="/" style={{textDecoration:"underline",fontSize:"15px"}}>立即回到首页</a>
                 </div>
             </Content>

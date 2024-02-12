@@ -22,9 +22,6 @@ import {
     Spin,
     Upload
 } from 'antd';
-// @ts-ignore
-import debounce from 'lodash/debounce';
-import style from './style.module.scss'
 import {verifyUser} from "../../api/user";
 import areaData from 'china-area-data/v5/data';
 import {addPatient, editPatient, getMaxPatientID, searchPatients} from "../../api/patient";
@@ -36,12 +33,10 @@ import {useDispatch, useSelector} from "react-redux";
 import {AppState} from "../../store";
 import {closePatientDrawer, openPatientDrawer, renderPatient, setPatientEditClose} from "../../store/actions/actions";
 import {addAppointment} from "../../api/appointment";
-import {searchEmployees} from "../../api/employee";
 import dayjs from "dayjs";
+import {DebounceSelect, fetchDoctorList, fetchPatientList} from "../DebounceSelect";
 
 dayjs.extend(customParseFormat);
-const {RangePicker} = DatePicker;
-
 const {TextArea} = Input;
 
 const {Header} = Layout;
@@ -82,51 +77,6 @@ const items: MenuItem[] = [
     getItem('机构管理', '/groupManage')
 ]
 
-export interface DebounceSelectProps<ValueType = any>
-    extends Omit<SelectProps<ValueType | ValueType[]>, 'options' | 'children'> {
-    fetchOptions: (search: string) => Promise<ValueType[]>;
-    debounceTimeout?: number;
-}
-
-function DebounceSelect<
-    ValueType extends { key?: string; label: React.ReactNode; value: string | number } = any,
->({fetchOptions, debounceTimeout = 500, ...props}: DebounceSelectProps<ValueType>) {
-    const [fetching, setFetching] = useState(false);
-    const [options, setOptions] = useState<ValueType[]>([]);
-    const fetchRef = useRef(0);
-
-    const debounceFetcher = useMemo(() => {
-        const loadOptions = (value: string) => {
-            fetchRef.current += 1;
-            const fetchId = fetchRef.current;
-            setOptions([]);
-            setFetching(true);
-
-            fetchOptions(value).then((newOptions) => {
-                if (fetchId !== fetchRef.current) {
-                    // for fetch callback order
-                    return;
-                }
-
-                setOptions(newOptions);
-                setFetching(false);
-            });
-        };
-
-        return debounce(loadOptions, debounceTimeout);
-    }, [fetchOptions, debounceTimeout]);
-
-    return (
-        <Select
-            labelInValue
-            filterOption={false}
-            onSearch={debounceFetcher}
-            notFoundContent={fetching ? <Spin size="small"/> : null}
-            {...props}
-            options={options}
-        />
-    );
-}
 
 // Usage of DebounceSelect
 interface ListValue {
@@ -285,42 +235,6 @@ const LayoutPage = () => {
     const [doctorValue, setDoctorValue] = useState<ListValue | undefined>();
     const [appointmentForm] = Form.useForm()
 
-    const fetchPatientList = async (keyword: string) => {
-        console.log(keyword)
-        try {
-            const response = await searchPatients(keyword)
-            if (response.status === 200) {
-                const responseData = response.data.data
-                console.log(responseData)
-                return responseData.map((item: { id: number; name: string }) => {
-                    return {
-                        label: item.name,
-                        value: item.id
-                    };
-                });
-            }
-        } catch (error) {
-            console.log(error)
-        }
-    }
-    const fetchDoctorList = async (keyword: string) => {
-        console.log(keyword)
-        try {
-            const response = await searchEmployees(keyword)
-            if (response.status === 200) {
-                const responseData = response.data.data
-                console.log(responseData)
-                return responseData.map((item: { id: number; name: string }) => {
-                    return {
-                        label: item.name,
-                        value: item.id
-                    };
-                });
-            }
-        } catch (error) {
-            console.log(error)
-        }
-    }
 
     const range = (start: number, end: number) => {
         const result = [];
@@ -451,7 +365,7 @@ const LayoutPage = () => {
                             style={{backgroundColor: "#ffffff00"}}
                         />
                     </div>
-                    <div>
+                    <div style={{minWidth:"225px"}}>
                         <Button style={{marginLeft: '20px'}} type={"primary"}
                                 onClick={clickAddPatient}>新增患者</Button>
                         <Button style={{marginLeft: '20px'}} type={"primary"}

@@ -4,7 +4,7 @@ import type {TabsProps} from 'antd';
 import doctorShift from "./appointTabs/doctorShift";
 import shiftSetting from "./appointTabs/shiftSetting";
 import AppointmentView from "./appointTabs/AppointmentView";
-import appointmentSearch from "./appointTabs/appointmentSearch";
+import AppointmentSearch from "./appointTabs/AppointmentSearch";
 
 const items: TabsProps['items'] = [
     {
@@ -15,7 +15,7 @@ const items: TabsProps['items'] = [
     {
         key: '2',
         label: '预约查询',
-        children: appointmentSearch,
+        children:<AppointmentSearch />,
     },
     {
         key: '3',
