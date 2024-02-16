@@ -1,8 +1,24 @@
-import React, {useState} from "react";
-import {Button, DatePicker, Form, Layout, Row, Select, Space, TimeRangePickerProps} from "antd";
+import React, {useEffect, useState} from "react";
+import {
+    Avatar,
+    Button,
+    DatePicker,
+    Form,
+    Layout,
+    Pagination, Popconfirm,
+    Row,
+    Select,
+    Space,
+    Table,
+    TimeRangePickerProps
+} from "antd";
 import {DebounceSelect, fetchDoctorList, fetchPatientList} from "../../../../../components/DebounceSelect";
 import dayjs from "dayjs";
 import type {Dayjs} from 'dayjs';
+import {ColumnsType} from "antd/es/table";
+import {QuestionCircleOutlined, UserOutlined} from "@ant-design/icons";
+import {getAppointments} from "../../../../../api/appointment";
+import areaData from "china-area-data/v5/data";
 
 const {Option} = Select;
 const {Content} = Layout;
@@ -36,6 +52,9 @@ const AppointmentSearch = () => {
     const [appointmentSearch] = Form.useForm()
     const [patientValue, setPatientValue] = useState<ListValue | undefined>();
     const [doctorValue, setDoctorValue] = useState<ListValue | undefined>();
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const [total, setTotal] = useState(0)
     const onAppointmentSearchFinish = () => {
         const data = appointmentSearch.getFieldsValue();
         console.log(data)
@@ -43,6 +62,142 @@ const AppointmentSearch = () => {
     const onAppointmentSearchFinishFailed = (errorInfo: object) => {
         console.log('Failed:', errorInfo);
     }
+    const handleChangePage = (page: number, pageSize: number) => {
+        setPage(page)
+        setPageSize(pageSize)
+    }
+
+
+    const [sortOrder, setSortOrder] = useState()
+    const [sortColumn, setSortColumn] = useState()
+    const handleEditAppointment = (record: any) => {
+        console.log(record)
+    }
+    const handleTableChange = (sorter: any) => {
+        const {columnKey, order} = sorter;
+        setSortOrder(order)
+        setSortColumn(columnKey)
+    };
+
+    const renderAppointmentTable = () => {
+        getAppointments().then(response => {
+            if (response.status === 200) {
+                let appointments = response.data.data
+                console.log(appointments)
+                setTotal(response.data.total)
+                setSearchData(appointments.map((appointment: any) => {
+                    const formattedAppointment: any = {
+                        ...appointment,
+                        key: appointment.id,
+                    };
+                    if (appointment.createdAt) {
+                        formattedAppointment.createdAt = dayjs(appointment.createdAt).format('YYYY年MM月DD日');
+                    }
+                    if (appointment.appointmentTime) {
+                        formattedAppointment.appointmentTime = dayjs(appointment.appointmentTime).format('YYYY年MM月DD日');
+                    }
+                    return formattedAppointment;
+                }))
+            }
+        })
+    }
+
+    useEffect(() => {
+        console.log(('effect'))
+        renderAppointmentTable()
+    }, [page, pageSize, sortOrder, sortColumn])
+
+    interface SearchDataType {
+        id: number;
+        key: React.Key;
+    }
+
+    const [searchData, setSearchData] = useState<SearchDataType[]>([]);
+    const searchColumns: ColumnsType<SearchDataType> = [
+        {
+            title: '患者',
+            width: 90,
+            dataIndex: 'patientName',
+            key: 'patientName',
+            sorter: true,
+        },
+        {
+            title: '性别',
+            width: 90,
+            dataIndex: 'patientGender',
+            key: 'patientGender',
+            sorter: true,
+        },
+        {
+            title: '年龄',
+            width: 90,
+            dataIndex: 'patientAge',
+            key: 'patientAge',
+            sorter: true,
+        },
+        {
+            title: '客户号',
+            width: 90,
+            dataIndex: 'patientId',
+            key: 'patientId',
+            fixed: "left",
+            sorter: true,
+        },
+        {
+            title: '预约号',
+            width: 90,
+            dataIndex: 'appointmentId',
+            key: 'appointmentId',
+            fixed: "left",
+            sorter: true,
+        },
+        {
+            title: '预约医生',
+            width: 90,
+            dataIndex: 'employeeName',
+            key: 'employeeName',
+            sorter: true,
+        },
+        {
+            title: '预约时间',
+            width: 150,
+            dataIndex: 'appointmentTime',
+            key: 'appointmentTime',
+        },
+        {
+            title: '预约项目',
+            width: 90,
+            dataIndex: 'service',
+            key: 'service',
+            sorter: true,
+        },
+        {
+            title: '预约状态',
+            width: 90,
+            dataIndex: 'status',
+            key: 'status',
+            sorter: true,
+        },
+        {
+            title: '创建时间',
+            width: 150,
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            sorter: true,
+        },
+        {
+            title: '操作',
+            key: 'operation',
+            width: 200,
+            fixed: 'right',
+            render: (record) => (
+                <Space>
+                    <Button onClick={() => handleEditAppointment(record)}>修改预约</Button>
+                </Space>
+            ),
+
+        },
+    ]
 
 
     return (
@@ -108,16 +263,38 @@ const AppointmentSearch = () => {
                         </Space>
                     </Row>
                     <Row>
-                            <Form.Item
-                                label="预约时间" name="appointmentTime"
-                            >
-                                <RangePicker presets={rangePresets} onChange={onRangeChange}/>
-                            </Form.Item>
-                            <Button onClick={()=>{
-                                appointmentSearch.submit()
-                            }} style={{marginLeft:"10px"}} type={"primary"}>搜索</Button>
+                        <Form.Item
+                            label="预约时间" name="appointmentTime"
+                        >
+                            <RangePicker presets={rangePresets} onChange={onRangeChange}/>
+                        </Form.Item>
+                        <Button onClick={() => {
+                            appointmentSearch.submit()
+                        }} style={{marginLeft: "10px"}} type={"primary"}>搜索</Button>
                     </Row>
                 </Form>
+
+                <Table
+                    style={{minWidth: "440px"}}
+                    size={"small"}
+                    pagination={false}
+                    bordered={true}
+                    columns={searchColumns}
+                    dataSource={searchData}
+                    scroll={{x: "max-content", y: '64vh'}}
+                    onChange={(pagination, filters, sorter) => handleTableChange(sorter)}
+                />
+                <Pagination
+                    current={page}
+                    pageSize={pageSize}
+                    total={total}
+                    showQuickJumper
+                    showSizeChanger
+                    pageSizeOptions={[10, 20, 30, 40, 50, 100]}
+                    showTotal={(total) => `共 ${total} 条`}
+                    onChange={handleChangePage}
+                    style={{marginTop: '10px'}}
+                />
             </Content>
         </>
     )

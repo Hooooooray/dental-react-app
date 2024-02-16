@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Layout, Button, Form, Row, Input, Space, Table, Pagination, Popconfirm, App, Flex, Avatar} from 'antd';
-import {QuestionCircleOutlined,UserOutlined} from "@ant-design/icons";
+import {QuestionCircleOutlined, UserOutlined} from "@ant-design/icons";
 import {ColumnsType} from "antd/es/table";
 import {useNavigate} from "react-router-dom";
 import dayjs from "dayjs";
@@ -29,7 +29,7 @@ const PatientCenter = () => {
 
     interface PatientDataType {
         id: number;
-        avatar:any;
+        avatar: any;
         key: React.Key;
     }
 
@@ -120,7 +120,7 @@ const PatientCenter = () => {
             addressCity?: string
         }
 
-        getPatients(page, pageSize, patientId, name, phone, idCardNo, isTodayOnly,sortColumn,sortOrder)
+        getPatients(page, pageSize, patientId, name, phone, idCardNo, isTodayOnly, sortColumn, sortOrder)
             .then(response => {
                 if (response.status === 200) {
                     let patients = response.data.data
@@ -159,7 +159,7 @@ const PatientCenter = () => {
     useEffect(() => {
         console.log(('effect'))
         renderPatientTable()
-    }, [page, pageSize, patientId, name, phone, idCardNo, renderPatient, isTodayOnly,sortOrder,sortColumn])
+    }, [page, pageSize, patientId, name, phone, idCardNo, renderPatient, isTodayOnly, sortOrder, sortColumn])
 
     const onPatientSearchFinish = () => {
         const data = patientSearch.getFieldsValue();
@@ -184,7 +184,7 @@ const PatientCenter = () => {
         setPageSize(pageSize)
     }
 
-    const clickName = (record:any)=>{
+    const clickName = (record: any) => {
         const id = record.id
     }
 
@@ -208,8 +208,9 @@ const PatientCenter = () => {
             sorter: true,
             render: (text, record) => (
                 <Space>
-                    {record.avatar ? <Avatar shape="square" src={`data:image/jpeg;base64,${record.avatar}`} /> : <Avatar shape="square" icon={<UserOutlined />}/>}
-                    {<a onClick={()=>clickName(record)}>{text}</a>}
+                    {record.avatar ? <Avatar shape="square" src={`data:image/jpeg;base64,${record.avatar}`}/> :
+                        <Avatar shape="square" icon={<UserOutlined/>}/>}
+                    {<a onClick={() => clickName(record)}>{text}</a>}
                 </Space>
             ),
         },
@@ -349,7 +350,7 @@ const PatientCenter = () => {
 
 
     const handleTableChange = (sorter: any) => {
-        const { columnKey, order } = sorter;
+        const {columnKey, order} = sorter;
         setSortOrder(order)
         setSortColumn(columnKey)
     };
@@ -366,15 +367,17 @@ const PatientCenter = () => {
                     onFinish={onPatientSearchFinish}
                     onFinishFailed={onPatientSearchFinishFailed}
                 >
-                    <Row style={{minWidth:"800px"}}>
-                            <Form.Item label="仅显示今日新增患者" name="onlyTody">
-                                <Input style={{width:"15px",height:"15px"}} checked={isTodayOnly} type="checkbox" onChange={onTodayChange}/>
-                            </Form.Item>
-                            <Button style={{marginLeft:"10px"}} type={"primary"} onClick={() => exportToExcel(patientData, 'patients')}>
-                                导出为 Excel
-                            </Button>
+                    <Row style={{minWidth: "800px"}}>
+                        <Form.Item label="仅显示今日新增患者" name="onlyTody">
+                            <Input style={{width: "15px", height: "15px"}} checked={isTodayOnly} type="checkbox"
+                                   onChange={onTodayChange}/>
+                        </Form.Item>
+                        <Button style={{marginLeft: "10px"}} type={"primary"}
+                                onClick={() => exportToExcel(patientData, 'patients')}>
+                            导出为 Excel
+                        </Button>
                     </Row>
-                    <Row style={{minWidth:"785px"}}>
+                    <Row style={{minWidth: "785px"}}>
                         <Space>
                             <Form.Item
                                 label="客户号" name="id">
@@ -401,14 +404,14 @@ const PatientCenter = () => {
                 </Form>
 
                 <Table
-                        style={{minWidth:"440px"}}
-                        size={"small"}
-                       pagination={false}
-                       bordered={true}
-                       columns={patientColumns}
-                       dataSource={patientData}
-                       scroll={{x: "max-content", y: '64vh'}}
-                       onChange={(pagination, filters, sorter) => handleTableChange(sorter)}
+                    style={{minWidth: "440px"}}
+                    size={"small"}
+                    pagination={false}
+                    bordered={true}
+                    columns={patientColumns}
+                    dataSource={patientData}
+                    scroll={{x: "max-content", y: '64vh'}}
+                    onChange={(pagination, filters, sorter) => handleTableChange(sorter)}
                 />
                 <Pagination
                     current={page}
