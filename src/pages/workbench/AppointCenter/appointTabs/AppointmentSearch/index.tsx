@@ -55,9 +55,32 @@ const AppointmentSearch = () => {
     const [page, setPage] = useState(1)
     const [pageSize, setPageSize] = useState(10)
     const [total, setTotal] = useState(0)
+    const [startTime, setStartTime] = useState<any>()
+    const [endTime, setEndTime] = useState<any>()
+    const [service, setService] = useState()
+    const [status, setStatus] = useState()
+    const [patientId, setPatientId] = useState()
+    const [employeeId, setEmployeeId] = useState()
     const onAppointmentSearchFinish = () => {
         const data = appointmentSearch.getFieldsValue();
         console.log(data)
+        setService(data.service)
+        setStatus(data.status)
+        if (data.patient) {
+            setPatientId(data.patient.value)
+        }
+        if (data.employee) {
+            setEmployeeId(data.employee.value)
+        }
+        if (data.appointmentTime) {
+            setStartTime(data.appointmentTime[0].toISOString())
+            setEndTime(data.appointmentTime[1].toISOString())
+        } else {
+            setStartTime(null)
+            setEndTime(null)
+        }
+
+
     }
     const onAppointmentSearchFinishFailed = (errorInfo: object) => {
         console.log('Failed:', errorInfo);
@@ -80,7 +103,7 @@ const AppointmentSearch = () => {
     };
 
     const renderAppointmentTable = () => {
-        getAppointments().then(response => {
+        getAppointments(startTime, endTime, service, status, patientId, employeeId, page, pageSize).then(response => {
             if (response.status === 200) {
                 let appointments = response.data.data
                 console.log(appointments)
@@ -96,10 +119,10 @@ const AppointmentSearch = () => {
                     if (appointment.appointmentTime) {
                         formattedAppointment.appointmentTime = dayjs(appointment.appointmentTime).format('YYYY年MM月DD日');
                     }
-                    if(appointment.employee){
+                    if (appointment.employee) {
                         formattedAppointment.employeeName = appointment.employee.name
                     }
-                    if(appointment.patient){
+                    if (appointment.patient) {
                         formattedAppointment.patientName = appointment.patient.name
                         formattedAppointment.patientGender = appointment.patient.gender
                         formattedAppointment.patientAge = appointment.patient.age
@@ -113,7 +136,7 @@ const AppointmentSearch = () => {
     useEffect(() => {
         console.log(('effect'))
         renderAppointmentTable()
-    }, [page, pageSize, sortOrder, sortColumn])
+    }, [page, pageSize, startTime, endTime, service, status, patientId, employeeId, sortOrder, sortColumn])
 
     interface SearchDataType {
         id: number;
@@ -286,7 +309,7 @@ const AppointmentSearch = () => {
                     bordered={true}
                     columns={searchColumns}
                     dataSource={searchData}
-                    scroll={{x: "max-content", y: '64vh'}}
+                    scroll={{x: "max-content", y: '60vh'}}
                     onChange={(pagination, filters, sorter) => handleTableChange(sorter)}
                 />
                 <Pagination
