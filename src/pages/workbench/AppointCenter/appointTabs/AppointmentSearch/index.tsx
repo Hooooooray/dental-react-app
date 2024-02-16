@@ -96,6 +96,14 @@ const AppointmentSearch = () => {
                     if (appointment.appointmentTime) {
                         formattedAppointment.appointmentTime = dayjs(appointment.appointmentTime).format('YYYY年MM月DD日');
                     }
+                    if(appointment.employee){
+                        formattedAppointment.employeeName = appointment.employee.name
+                    }
+                    if(appointment.patient){
+                        formattedAppointment.patientName = appointment.patient.name
+                        formattedAppointment.patientGender = appointment.patient.gender
+                        formattedAppointment.patientAge = appointment.patient.age
+                    }
                     return formattedAppointment;
                 }))
             }
@@ -140,15 +148,13 @@ const AppointmentSearch = () => {
             width: 90,
             dataIndex: 'patientId',
             key: 'patientId',
-            fixed: "left",
             sorter: true,
         },
         {
             title: '预约号',
             width: 90,
-            dataIndex: 'appointmentId',
-            key: 'appointmentId',
-            fixed: "left",
+            dataIndex: 'id',
+            key: 'id',
             sorter: true,
         },
         {
@@ -195,7 +201,6 @@ const AppointmentSearch = () => {
                     <Button onClick={() => handleEditAppointment(record)}>修改预约</Button>
                 </Space>
             ),
-
         },
     ]
 
