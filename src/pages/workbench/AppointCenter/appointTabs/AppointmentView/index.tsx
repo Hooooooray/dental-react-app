@@ -78,7 +78,7 @@ const AppointmentView = () => {
         if (response.status === 200 && response.data.data) {
             const appointmentData = response.data.data
             for (let appointment of appointmentData) {
-                // console.log(appointment)
+                console.log(appointment)
                 const appointmentDate = new Date(appointment.appointmentTime);
                 const startOfDay = new Date(appointmentDate);
                 startOfDay.setHours(8, 0, 0, 0); // 设置为当天早上 8 点
@@ -118,7 +118,7 @@ const AppointmentView = () => {
                 // @ts-ignore
                 thisData[segmentNumber] = {
                     ...thisData[segmentNumber],
-                    [columnKey]: `${appointment.employeeId}-${appointment.patientId}-${appointment.status}`
+                    [columnKey]: `${appointment.employee.name}-${appointment.patient.name}-${appointment.status}`
                 };
 
 
@@ -189,7 +189,7 @@ const AppointmentView = () => {
                 padding:"5px"
             }}>
                 <div>
-                    <Alert message="视图格式：员工ID-患者ID-预约状态" type="success"/>
+                    <Alert message="视图格式：员工-患者-预约状态" type="success"/>
                 </div>
             </Layout>
         </div>
