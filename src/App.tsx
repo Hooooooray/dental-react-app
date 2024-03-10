@@ -18,6 +18,7 @@ function App() {
                         colorBorderSecondary: '#EFEFEF',
                         paddingLG: 10,
                         padding: 7.5,
+
                     },
                     components: {
                         Layout: {
@@ -33,7 +34,10 @@ function App() {
                             bodySortBg: "#F5F5F5",
                             borderColor: "#ECEEF4"
                         },
-                        Modal: {},
+                        DatePicker: {
+                            colorBgContainerDisabled:"#fff",
+                            colorTextDisabled:"#383838",
+                        },
                     },
                 }}
             >

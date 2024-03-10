@@ -2,9 +2,9 @@ import React from "react";
 import {Tabs} from "antd";
 import type {TabsProps} from 'antd';
 import doctorShift from "./appointTabs/doctorShift";
-import shiftSetting from "./appointTabs/shiftSetting";
 import AppointmentView from "./appointTabs/AppointmentView";
 import AppointmentSearch from "./appointTabs/AppointmentSearch";
+import ShiftSetting from "./appointTabs/ShiftSetting";
 
 const items: TabsProps['items'] = [
     {
@@ -25,7 +25,7 @@ const items: TabsProps['items'] = [
     {
         key: '4',
         label: '班次设置',
-        children: shiftSetting,
+        children: <ShiftSetting />,
     },
 ];
 
