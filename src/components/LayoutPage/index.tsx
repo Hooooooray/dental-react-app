@@ -365,7 +365,7 @@ const LayoutPage = () => {
                             style={{backgroundColor: "#ffffff00"}}
                         />
                     </div>
-                    <div style={{minWidth:"225px"}}>
+                    <div style={{minWidth: "225px"}}>
                         <Button style={{marginLeft: '20px'}} type={"primary"}
                                 onClick={clickAddPatient}>新增患者</Button>
                         <Button style={{marginLeft: '20px'}} type={"primary"}
@@ -436,6 +436,7 @@ const LayoutPage = () => {
                         rules={[{required: true}]}
                         label="预约时间" name="appointmentTime">
                         <DatePicker
+                            style={{width:"100%"}}
                             format="YYYY-MM-DD HH:mm:ss"
                             disabledDate={disabledDate}
                             disabledTime={disabledDateTime}
