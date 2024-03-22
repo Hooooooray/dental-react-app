@@ -1,9 +1,4 @@
 import $api from "./index";
-import data from "china-area-data/v5/data";
-
-export const getShifts = () => {
-    return $api.get('/shifts')
-}
 
 interface shiftType {
     id?: number
@@ -14,6 +9,10 @@ interface shiftType {
 
 interface deleteShiftType {
     id: number
+}
+
+export const getShifts = () => {
+    return $api.get('/shifts')
 }
 
 export const addShift = (data: shiftType) => {

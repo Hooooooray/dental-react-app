@@ -4,7 +4,6 @@ import dayjs, {Dayjs} from "dayjs";
 import style from './style.module.scss'
 import {ColumnsType} from "antd/es/table";
 import {addShift, deleteShift, editShift, getShifts} from "../../../../../api/shift";
-import {deletePatient} from "../../../../../api/patient";
 import {QuestionCircleOutlined} from "@ant-design/icons";
 
 const format = 'HH:mm';
@@ -13,13 +12,13 @@ const ShiftSetting = () => {
     const {message} = App.useApp();
     const [render, setRender] = useState(0)
 
-    interface SearchDataType {
+    interface ShiftDataType {
         id: number;
         key: React.Key;
     }
 
-    const [shiftData, setShiftData] = useState<SearchDataType[]>()
-    const shiftColumns: ColumnsType<SearchDataType> = [
+    const [shiftData, setShiftData] = useState<ShiftDataType[]>()
+    const shiftColumns: ColumnsType<ShiftDataType> = [
         {
             title: '班次名称',
             dataIndex: 'name',
