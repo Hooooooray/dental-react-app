@@ -14,11 +14,11 @@ function App() {
                 locale={locale}
                 theme={{
                     token: {
-                        colorPrimary: '#E85870',
+                        // colorPrimary: '#E85870',
+                        colorPrimary:"#677AE2",
                         colorBorderSecondary: '#EFEFEF',
                         paddingLG: 10,
                         padding: 7.5,
-
                     },
                     components: {
                         Layout: {
@@ -37,6 +37,9 @@ function App() {
                         DatePicker: {
                             colorBgContainerDisabled:"#fff",
                             colorTextDisabled:"#383838",
+                        },
+                        Radio: {
+                            buttonPaddingInline:20,
                         },
                     },
                 }}

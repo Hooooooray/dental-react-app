@@ -5,6 +5,7 @@ import clock from "../clock.png"
 import "../TableComponent.scss"
 import dayjs from "dayjs";
 import {getAppointments} from "../../../../../api/appointment";
+import style from './style.module.scss'
 
 const {Content} = Layout
 const {Sider, Header} = Layout
@@ -172,6 +173,7 @@ const AppointmentView = () => {
                         {timeItem}
                     </Sider>
                     <Table
+                        className={style.centerHead}
                         style={{width: "1225px"}}
                         columns={columns}
                         bordered={true}

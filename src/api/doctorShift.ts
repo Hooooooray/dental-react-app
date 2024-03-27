@@ -1,7 +1,7 @@
 import $api from "./index";
 
-export const getDoctorShifts = () => {
-    return $api.get('/doctorShifts')
+export const getDoctorShifts = (page?: number, pageSize?: number, position?: string) => {
+    return $api.get('/doctorShifts', {params: {page, pageSize, position}})
 }
 
 interface DoctorShiftOperation {

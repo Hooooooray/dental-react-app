@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from "react";
-import {App, Button, Checkbox, Table} from "antd";
+import {App, Button, Checkbox, DatePicker, Flex, Pagination, Radio, RadioChangeEvent, Space, Table, Layout} from "antd";
 import {ColumnsType} from "antd/es/table";
 import {getShifts} from "../../../../../api/shift";
 import style from './style.module.scss'
 import {getEmployees} from "../../../../../api/employee";
 import {batchAddOrEditDoctorShifts, getDoctorShifts} from "../../../../../api/doctorShift";
 
+const {Header, Footer, Sider, Content} = Layout;
 const DoctorShift = () => {
     const {message} = App.useApp();
 
@@ -16,6 +17,10 @@ const DoctorShift = () => {
 
     const [doctorShiftData, setDoctorShiftData] = useState<DoctorShiftDataType[]>([])
     const [doctorShiftColumns, setDoctorShiftColumns] = useState<ColumnsType<DoctorShiftDataType>>()
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const [total, setTotal] = useState(0)
+    const [position, setPosition] = useState('DOCTOR')
 
 
     interface ShiftData {
@@ -28,15 +33,17 @@ const DoctorShift = () => {
 
     // 加载班次数据并构建列
     const loadShiftsAndBuildColumns = async () => {
-        const initColumns = [
+        const initColumns: ColumnsType<DoctorShiftDataType> = [
             {
                 title: '科室',
+                fixed: 'left',
                 dataIndex: 'dentalDepartment',
                 key: 'dentalDepartment',
-                width: 100
+                width: 100,
             },
             {
-                title: '医生',
+                title: '员工',
+                fixed: 'left',
                 dataIndex: 'name',
                 key: 'name',
                 width: 100
@@ -56,6 +63,7 @@ const DoctorShift = () => {
                     title: shift.name,
                     dataIndex: `${day.toLowerCase()}_${shift.name}`,
                     key: `${day.toLowerCase()}_${shift.id}`,
+                    width: 80,
                     render: (_: any, record: any) => {
                         const dataIndex = `${day.toLowerCase()}_${shift.name}`;
                         return (
@@ -72,7 +80,9 @@ const DoctorShift = () => {
     };
 
     const loadEmployeeData = async () => {
-        const response = await getDoctorShifts()
+        console.log(position)
+        const response = await getDoctorShifts(page, pageSize, position)
+        setTotal(response.data.total)
         if (response.status === 200 && response.data.success) {
             let employeeDatas = response.data.data
             setDoctorShiftData(employeeDatas.map((employeeData: any) => {
@@ -171,18 +181,52 @@ const DoctorShift = () => {
         console.log('saveDoctorShift', doctorShiftData)
     }
 
+    const handleChangePage = (page: number, pageSize: number) => {
+        setPage(page)
+        setPageSize(pageSize)
+    }
+
+    const onChange = (e: RadioChangeEvent) => {
+        console.log(`radio checked:${e.target.value}`);
+        setPosition(e.target.value)
+    };
+
     useEffect(() => {
         loadShiftsAndBuildColumns().then(() => {
             loadEmployeeData().then(r => {
             })
         });
-    }, []);
+    }, [page, pageSize, position]);
+
 
     return (
         <>
-            <Button type={"primary"} onClick={saveDoctorShift}>保存</Button>
-            <Table className={style.centerHead} columns={doctorShiftColumns} dataSource={doctorShiftData}
-                   scroll={{x: "1000px", y: '70vh'}}></Table>
+            <Content style={{padding: "10px"}}>
+                <Flex style={{marginBottom:"10px"}}>
+                    <Space>
+                        <Radio.Group defaultValue={"DOCTOR"} buttonStyle="solid" onChange={onChange}>
+                            <Radio.Button value="DOCTOR">医生</Radio.Button>
+                            <Radio.Button value="COUNSELOR">咨询师</Radio.Button>
+                        </Radio.Group>
+                        <Button type={"primary"} onClick={saveDoctorShift}>保存</Button>
+                    </Space>
+                </Flex>
+                <Table className={style.centerHead} pagination={false} bordered={true} columns={doctorShiftColumns}
+                       dataSource={doctorShiftData}
+                       scroll={{x: "max-content", y: '64vh'}}>
+                </Table>
+                <Pagination
+                    style={{marginTop: '10px'}}
+                    current={page}
+                    pageSize={pageSize}
+                    total={total}
+                    showQuickJumper
+                    showSizeChanger
+                    pageSizeOptions={[10, 20, 30, 40, 50, 100]}
+                    showTotal={(total) => `共 ${total} 条`}
+                    onChange={handleChangePage}
+                />
+            </Content>
         </>
     );
 }

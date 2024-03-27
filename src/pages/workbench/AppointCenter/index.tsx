@@ -26,7 +26,7 @@ const AppointCenter = () => {
         },
         {
             key: '3',
-            label: '医生班次',
+            label: '员工排班',
             children: <DoctorShift key={`doctor-shift-${activeKey}`} />,
         },
         {
