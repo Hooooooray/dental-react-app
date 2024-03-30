@@ -41,6 +41,9 @@ function App() {
                         Radio: {
                             buttonPaddingInline:20,
                         },
+                        Alert: {
+                            defaultPadding:"4px 12px"
+                        },
                     },
                 }}
             >

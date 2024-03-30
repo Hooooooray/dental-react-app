@@ -19,6 +19,8 @@ import {ColumnsType} from "antd/es/table";
 import {QuestionCircleOutlined, UserOutlined} from "@ant-design/icons";
 import {getAppointments} from "../../../../../api/appointment";
 import areaData from "china-area-data/v5/data";
+import style from './style.module.scss'
+import {onRangeChange, rangePresets} from "../../../../../components/PublicTimePicker";
 
 const {Option} = Select;
 const {Content} = Layout;
@@ -29,23 +31,9 @@ interface ListValue {
     value: string;
 }
 
-const rangePresets: TimeRangePickerProps['presets'] = [
-    {label: '今天', value: [dayjs().add(0, 'd'), dayjs()]},
-    {label: '近两天', value: [dayjs().add(-1, 'd'), dayjs()]},
-    {label: '近三天', value: [dayjs().add(-2, 'd'), dayjs()]},
-    {label: '近一周', value: [dayjs().add(-7, 'd'), dayjs()]},
-    {label: '近两周', value: [dayjs().add(-14, 'd'), dayjs()]},
-    {label: '近一个月', value: [dayjs().add(-30, 'd'), dayjs()]},
-];
 
-const onRangeChange = (dates: null | (Dayjs | null)[], dateStrings: string[]) => {
-    if (dates) {
-        console.log('From: ', dates[0], ', to: ', dates[1]);
-        console.log('From: ', dateStrings[0], ', to: ', dateStrings[1]);
-    } else {
-        console.log('Clear');
-    }
-};
+
+
 
 
 const AppointmentSearch = () => {
@@ -294,7 +282,7 @@ const AppointmentSearch = () => {
                         <Form.Item
                             label="预约时间" name="appointmentTime"
                         >
-                            <RangePicker presets={rangePresets} onChange={onRangeChange}/>
+                            <RangePicker className={style.customRange} presets={rangePresets} onChange={onRangeChange}/>
                         </Form.Item>
                         <Button onClick={() => {
                             appointmentSearch.submit()
