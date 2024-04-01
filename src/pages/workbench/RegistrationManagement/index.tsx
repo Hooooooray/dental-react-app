@@ -19,6 +19,7 @@ import style from './style.module.scss'
 import {onRangeChange, rangePresets} from "../../../components/PublicTimePicker";
 import {SearchProps} from "antd/es/input";
 import {getPatient, searchPatients} from "../../../api/patient";
+import {getMaxRegistrationID} from "../../../api/registration";
 
 const {RangePicker} = DatePicker;
 const {Option} = Select;
@@ -57,7 +58,10 @@ const RegistrationManagement = () => {
         }
     };
 
-
+    const [patientName, setPatientName] = useState('')
+    const [patientAvatar, setPatientAvatar] = useState('')
+    const [patientType, setPatientType] = useState('')
+    const [patientInfoForm] = Form.useForm()
     const items: CollapseProps['items'] = [
         {
             key: '1',
@@ -93,10 +97,24 @@ const RegistrationManagement = () => {
                                             <Avatar icon={<UserOutlined/>}/>}
                                         title={<a onClick={async () => {
                                             const response = await getPatient(item.id)
-                                            if (response.status === 200 && response.data.success === true){
+                                            if (response.status === 200 && response.data.success === true) {
                                                 console.log(response)
+                                                setPatientName(response.data.data.name)
+                                                setPatientAvatar(response.data.data.avatar)
+                                                setPatientType(response.data.data.patientTypeName)
+                                                patientInfoForm.setFieldValue('patientId', response.data.data.id)
                                                 setIsChoosePatientModalOpen(false)
                                             }
+                                            const getMaxIdResponse = await getMaxRegistrationID()
+                                            if (getMaxIdResponse.status === 200 && getMaxIdResponse.data.success === true) {
+                                                if (getMaxIdResponse.data.data !== null) {
+                                                    const newId = getMaxIdResponse.data.data.id + 1
+                                                    patientInfoForm.setFieldValue('id', newId)
+                                                } else {
+                                                    patientInfoForm.setFieldValue('id', 1)
+                                                }
+                                            }
+
                                         }}>{item.name}</a>}
                                         description={
                                             <>
@@ -121,8 +139,9 @@ const RegistrationManagement = () => {
 
                     </Modal>
                     <Flex vertical={true} justify={"center"} align={"center"}>
-                        <Avatar className={style.drawerItemSpace} size={"large"}></Avatar>
-                        <Alert className={style.drawerItemSpace} message={'张三'} type="info"/>
+                        <Avatar className={style.drawerItemSpace} size={"large"}
+                                src={`data:image/jpeg;base64,${patientAvatar}`}></Avatar>
+                        <Alert className={style.drawerItemSpace} message={patientName} type="info"/>
                         <Row>
                             <Space size={"large"}>
                                 <Form.Item label="病例号" name="id">
@@ -135,8 +154,8 @@ const RegistrationManagement = () => {
                         </Row>
                         <Row>
                             <Space size={"large"}>
-                                <Form.Item className={style.textForm} name="patientType" label="患者类型">
-                                    <span></span>
+                                <Form.Item className={style.textForm} label="患者类型">
+                                    <span>{patientType}</span>
                                 </Form.Item>
                                 <Form.Item name="visitingType" label="就诊类型">
                                     <Radio.Group>
@@ -211,6 +230,7 @@ const RegistrationManagement = () => {
         // 组件卸载时清除定时器
         return () => clearInterval(timerId);
     }, []);
+
 
     return (
         <>
@@ -291,7 +311,7 @@ const RegistrationManagement = () => {
                 <style>
                     {`.ant-drawer-header {background: linear-gradient(to right, #9ED2EF, #A1ECC8);padding-left:10px !important;padding-right:10px !important`}
                 </style>
-                <Form>
+                <Form form={patientInfoForm}>
                     <Collapse className={style.minCollapseWidth} size="small" items={items}
                               defaultActiveKey={['1', '2', '3']} expandIconPosition={"end"}
                               onChange={onChange}/>
