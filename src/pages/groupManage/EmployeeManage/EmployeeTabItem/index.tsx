@@ -34,11 +34,11 @@ const EmployeeTabItem = () => {
     interface EmployeeDataType {
         key: React.Key;
         id: number;
-        name: string;
-        position: string;
-        department: string;
-        dentalDepartment: string;
-        gender: string;
+        name?: string;
+        position?: string;
+        department?: string;
+        dentalDepartment?: string;
+        gender?: string;
     }
 
     const [employeeData, setEmployeeData] = useState<EmployeeDataType[]>([]);

@@ -25,10 +25,10 @@ export const getEmployee = (id: number) => {
     return $api.get('/employee', {params: {id}});
 }
 
-export const getEmployees = (page?: number, pageSize?: number) => {
-    return $api.get('/employees', {params: {page, pageSize}})
+export const getEmployees = (page?: number, pageSize?: number, position?: string, keyword?: string) => {
+    return $api.get('/employees', {params: {page, pageSize, position, keyword}})
 }
 
-export const searchEmployees = (keyword:string) =>{
-    return $api.get('/searchEmployees',{params:{keyword}})
+export const searchEmployees = (keyword: string) => {
+    return $api.get('/searchEmployees', {params: {keyword}})
 }

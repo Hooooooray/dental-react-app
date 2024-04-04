@@ -1,24 +1,36 @@
 .customRange {
-  input{
+  input {
     text-align: center;
   }
 }
-.minFormWidth{
+
+.minFormWidth {
   min-width: 1250px;
 }
-.buttonSpace{
+
+.buttonSpace {
   margin-right: 10px;
 }
-.drawerItemSpace{
+
+.drawerItemSpace {
   margin-bottom: 10px;
 }
-.bottomButton{
+
+.bottomButton {
   text-align: right;
   padding: 5px;
 }
-.textForm{
+
+.textForm {
   width: 236px;
 }
-.minCollapseWidth{
+
+.minCollapseWidth {
   min-width: 988px;
 }
+
+.disabledColor{
+  color: #000 !important;
+}
+
+
