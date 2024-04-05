@@ -19,7 +19,7 @@ import style from './style.module.scss'
 import {onRangeChange, rangePresets} from "../../../components/PublicTimePicker";
 import {SearchProps} from "antd/es/input";
 import {getPatient, searchPatients} from "../../../api/patient";
-import {addRegistration, getMaxRegistrationID} from "../../../api/registration";
+import {addRegistration, getMaxRegistrationID, getRegistrations} from "../../../api/registration";
 import type {ColumnsType} from "antd/es/table";
 import {getEmployees} from "../../../api/employee";
 import dayjs from "dayjs";
@@ -31,6 +31,145 @@ const {Search} = Input;
 
 const RegistrationManagement = () => {
     const {message} = App.useApp();
+
+    interface RegistrationType {
+        key: React.Key;
+        id: number;
+    }
+
+    const [registrationData, setRegistrationData] = useState<RegistrationType[]>([])
+    const [registrationTablePage, setRegistrationTablePage] = useState(1)
+    const [registrationTablePageSize, setRegistrationTablePageSize] = useState(10)
+    const [registrationTableTotal, setRegistrationTableTotal] = useState(0)
+    const [startTime, setStartTime] = useState<any>()
+    const [endTime, setEndTime] = useState<any>()
+    const registrationColumns: ColumnsType<RegistrationType> = [
+        {
+            title: '患者',
+            dataIndex: 'patientName',
+            key: 'patientName',
+            width: 90,
+            fixed: 'left',
+        },
+        {
+            title: '性别',
+            dataIndex: 'gender',
+            key: 'gender',
+            width: 90,
+        },
+        {
+            title: '年龄',
+            dataIndex: 'age',
+            key: 'age',
+            width: 90,
+        },
+        {
+            title: '挂号时间',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            width: 150,
+        },
+        {
+            title: '挂号状态',
+            dataIndex: 'status',
+            key: 'status',
+            width: 90,
+        },
+        {
+            title: '就诊类型',
+            dataIndex: 'visitingType',
+            key: 'visitingType',
+            width: 90,
+        },
+        {
+            title: '接诊医生',
+            dataIndex: 'doctorName',
+            key: 'doctorName',
+            width: 90,
+        },
+        {
+            title: '患者备注',
+            dataIndex: 'notes',
+            key: 'notes',
+            width: 180,
+        },
+
+        {
+            title: '操作',
+            key: 'operation',
+            fixed: 'right',
+            width: 130,
+            render: (record) => (
+                <Flex justify="center">
+                    <Space>
+                        <Button onClick={() => {
+                        }}>修改挂号状态</Button>
+                        <Button onClick={() => {
+                        }}>修改就诊类型</Button>
+                    </Space>
+                </Flex>
+            ),
+        },
+    ]
+    const handleRegistrationChangePage = (page: number, pageSize: number) => {
+        setRegistrationTablePage(page)
+        setRegistrationTablePageSize(pageSize)
+    }
+    const renderRegistrationTable = () => {
+        interface Registration {
+            id: number;
+            createdAt?: any
+            patient?: any
+            employee?: any
+        }
+
+        getRegistrations(registrationTablePage, registrationTablePageSize, startTime, endTime)
+            .then(response => {
+                if (response.status === 200) {
+                    let registrations = response.data.data
+                    console.log(registrations)
+                    setRegistrationTableTotal(response.data.total)
+                    setRegistrationData(registrations.map((registration: Registration) => {
+                        const formattedRegistration = {
+                            patientName: undefined, gender: undefined, age: undefined, doctorName: undefined,
+                            ...registration,
+                            key: registration.id,
+                        };
+                        if (registration.createdAt) {
+                            formattedRegistration.createdAt = dayjs(registration.createdAt).format('YYYY年MM月DD日');
+                        }
+                        if (registration.patient) {
+                            formattedRegistration.patientName = registration.patient.name
+                            formattedRegistration.gender = registration.patient.gender
+                            formattedRegistration.age = registration.patient.age
+                        }
+                        if (registration.employee) {
+                            formattedRegistration.doctorName = registration.employee.name
+                        }
+                        return formattedRegistration;
+                    }))
+                }
+            })
+            .catch(error => {
+                console.log(error)
+            })
+    }
+    useEffect(() => {
+        renderRegistrationTable()
+    }, [registrationTablePage, registrationTablePageSize, startTime, endTime]);
+
+    // 实时更新挂号modal里的时间
+    const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleString())
+    useEffect(() => {
+        // 每秒更新时间
+        const timerId = setInterval(() => {
+            setCurrentTime(new Date().toLocaleString());
+        }, 1000);
+
+        // 组件卸载时清除定时器
+        return () => clearInterval(timerId);
+    }, []);
+
     const [registrationOpen, setRegistrationOpen] = useState(false)
     const [isRegistrationEdit, setIsRegistrationEdit] = useState(false)
     const [isChoosePatientModalOpen, setIsChoosePatientModalOpen] = useState(false)
@@ -66,7 +205,7 @@ const RegistrationManagement = () => {
     const onDoctorSearch: SearchProps['onSearch'] = async (value, _e, info) => {
         console.log(info?.source, value)
         setDoctorSearchValue(value)
-        setPage(1)
+        setDoctorTablePage(1)
     };
 
     const [patientName, setPatientName] = useState('')
@@ -85,18 +224,20 @@ const RegistrationManagement = () => {
     }
 
     const [doctorData, setDoctorData] = useState<DoctorType[]>([]);
-    const [page, setPage] = useState(1)
-    const [pageSize, setPageSize] = useState(10)
-    const [total, setTotal] = useState(0)
+    const [doctorTablePage, setDoctorTablePage] = useState(1)
+    const [doctorTablePageSize, setDoctorTablePageSize] = useState(10)
+    const [doctorTableTotal, setDoctorTableTotal] = useState(0)
+
     const handleChooseDoctor = (record: any) => {
         console.log(record)
         const {id, name} = record
         patientInfoForm.setFieldValue('employeeId', id)
         patientInfoForm.setFieldValue('doctor', name)
+        message.success('选择成功')
     }
     const handleChangePage = (page: number, pageSize: number) => {
-        setPage(page)
-        setPageSize(pageSize)
+        setDoctorTablePage(page)
+        setDoctorTablePageSize(pageSize)
     }
     const renderDoctorTable = () => {
         interface Doctor {
@@ -106,14 +247,13 @@ const RegistrationManagement = () => {
             department?: string;
             dentalDepartment?: string;
             gender?: string;
-
         }
 
-        getEmployees(page, pageSize, 'DOCTOR', doctorSearchValue)
+        getEmployees(doctorTablePage, doctorTablePageSize, 'DOCTOR', doctorSearchValue)
             .then(response => {
                 if (response.status === 200) {
                     let doctors = response.data.data
-                    setTotal(response.data.total)
+                    setDoctorTableTotal(response.data.total)
                     setDoctorData(doctors.map((employee: Doctor) => {
                         const formattedEmployee = {
                             ...employee,
@@ -130,7 +270,51 @@ const RegistrationManagement = () => {
     useEffect(() => {
         console.log(('effect'))
         renderDoctorTable()
-    }, [page, pageSize, doctorSearchValue])
+    }, [doctorTablePage, doctorTablePageSize, doctorSearchValue])
+    const clickAddRegistration = () => {
+        setRegistrationOpen(true)
+        renderDoctorTable()
+    }
+    const onRegistrationClose = () => {
+        setRegistrationOpen(false)
+        patientInfoForm.resetFields()
+        setPatientName('')
+        setPatientAvatar('')
+    }
+    const onChange = (key: string | string[]) => {
+        console.log(key);
+    };
+
+    // 点击保存挂号
+    const clickSaveRegistration = () => {
+        // 触发表单验证
+        patientInfoForm.submit()
+    }
+    // 处理保存挂号
+    const saveRegistration = async () => {
+        try {
+            const data = patientInfoForm.getFieldsValue()
+            const saveResponse = await addRegistration({
+                id: data.id,
+                patientId: data.patientId,
+                employeeId: data.employeeId,
+                visitingType: data.visitingType
+            });
+            console.log(saveResponse)
+            if (saveResponse.status === 200 && saveResponse.data.success === true) {
+                message.success('保存成功')
+                setRegistrationOpen(false)
+                patientInfoForm.resetFields()
+                setPatientName('')
+                setPatientAvatar('')
+            }
+        } catch (e) {
+            console.log(e)
+            message.error('发生未知错误，请联系管理员')
+        }
+    }
+
+    // 折叠面板里的医生表格的列
     const doctorColumns: ColumnsType<DoctorType> = [
         {
             title: '员工号',
@@ -225,9 +409,9 @@ const RegistrationManagement = () => {
                     </Space>
                 </Flex>
             ),
-
         },
     ];
+    //新增挂号里面的折叠面板选项
     const items: CollapseProps['items'] = [
         {
             key: '1',
@@ -271,6 +455,7 @@ const RegistrationManagement = () => {
                                                 patientInfoForm.setFieldValue('patientId', response.data.data.id)
                                                 patientInfoForm.setFieldValue('lastDoctor', response.data.data.lastDoctor)
                                                 setIsChoosePatientModalOpen(false)
+                                                message.success('选择成功')
                                             }
                                             const getMaxIdResponse = await getMaxRegistrationID()
                                             if (getMaxIdResponse.status === 200 && getMaxIdResponse.data.success === true) {
@@ -379,11 +564,12 @@ const RegistrationManagement = () => {
                         columns={doctorColumns}
                         dataSource={doctorData}
                         scroll={{x: 'max-content', y: '48vh'}}
+                        className={style.centerHead}
                     />
                     <Pagination
-                        current={page}
-                        pageSize={pageSize}
-                        total={total}
+                        current={doctorTablePage}
+                        pageSize={doctorTablePageSize}
+                        total={doctorTableTotal}
                         showQuickJumper
                         showSizeChanger
                         pageSizeOptions={[10, 20, 30, 40, 50, 100]}
@@ -395,48 +581,6 @@ const RegistrationManagement = () => {
             ),
         }
     ];
-
-    const clickAddRegistration = () => {
-        setRegistrationOpen(true)
-        renderDoctorTable()
-    }
-    const onRegistrationClose = () => {
-        setRegistrationOpen(false)
-    }
-    const onChange = (key: string | string[]) => {
-        console.log(key);
-    };
-
-    const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleString())
-    useEffect(() => {
-        // 每秒更新时间
-        const timerId = setInterval(() => {
-            setCurrentTime(new Date().toLocaleString());
-        }, 1000);
-
-        // 组件卸载时清除定时器
-        return () => clearInterval(timerId);
-    }, []);
-
-    const clickSaveRegistration = () => {
-        patientInfoForm.submit()
-    }
-
-    const saveRegistration = async () => {
-        try {
-            const data = patientInfoForm.getFieldsValue()
-            const saveResponse = await addRegistration({
-                id: data.id,
-                patientId: data.patientId,
-                employeeId: data.employeeId,
-                visitingType: data.visitingType
-            });
-            console.log(saveResponse)
-        } catch (e) {
-            console.log(e)
-            message.error('发生未知错误，请联系管理员')
-        }
-    }
 
     return (
         <>
@@ -451,17 +595,17 @@ const RegistrationManagement = () => {
                     <Row className={style.minFormWidth}>
                         <Space size="large">
                             <Form.Item
-                                label="预约时间" name="appointmentTime"
+                                label="挂号时间" name="createdAt"
                             >
                                 <RangePicker className={style.customRange} presets={rangePresets}
                                              onChange={onRangeChange}/>
                             </Form.Item>
                             <Form.Item
-                                label="患者" name="patientName">
+                                label="患者" name="patientQuery">
                                 <Input allowClear></Input>
                             </Form.Item>
                             <Form.Item
-                                label="医生" name="DoctorName">
+                                label="医生" name="doctorQuery">
                                 <Input allowClear></Input>
                             </Form.Item>
                             <Form.Item label="就诊类型" name="visitingType">
@@ -487,14 +631,27 @@ const RegistrationManagement = () => {
                             </Form.Item>
                         </Space>
                     </Row>
-                    <Row>
-                        <Space>
-
-                        </Space>
-                    </Row>
-
                 </Form>
-                <Table></Table>
+                <Table
+                    size={"small"}
+                    pagination={false}
+                    bordered={true}
+                    columns={registrationColumns}
+                    dataSource={registrationData}
+                    scroll={{x: 'max-content', y: '60vh'}}
+                    className={style.centerHead}
+                />
+                <Pagination
+                    current={registrationTablePage}
+                    pageSize={registrationTablePageSize}
+                    total={registrationTableTotal}
+                    showQuickJumper
+                    showSizeChanger
+                    pageSizeOptions={[10, 20, 30, 40, 50, 100]}
+                    showTotal={(total) => `共 ${total} 条`}
+                    onChange={handleRegistrationChangePage}
+                    style={{marginTop: '10px'}}
+                />
             </div>
             <Drawer
                 title={isRegistrationEdit ? '编辑挂号' : '新增挂号'}
@@ -507,9 +664,7 @@ const RegistrationManagement = () => {
                         <Space size={"large"}>
                             <span>{currentTime}</span>
                             <Button type={"primary"} onClick={clickSaveRegistration}>保存</Button>
-                            <Button onClick={() => {
-                                setRegistrationOpen(false)
-                            }}>取消</Button>
+                            <Button onClick={onRegistrationClose}>取消</Button>
                         </Space>
                     </div>
                 }

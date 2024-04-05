@@ -2,9 +2,9 @@ import $api from "./index";
 
 interface RegistrationType {
     id: Number,
-    patientId:Number,
-    employeeId:Number,
-    visitingType:string,
+    patientId: Number,
+    employeeId: Number,
+    visitingType: string,
 }
 
 export const getMaxRegistrationID = () => {
@@ -13,4 +13,19 @@ export const getMaxRegistrationID = () => {
 
 export const addRegistration = (data: RegistrationType) => {
     return $api.post('/registration/add', data)
+}
+
+export const getRegistrations = (page?: number, pageSize?: number, startTime?: any, endTime?: any, visitingType?: string, status?: string, patientQuery?: string, doctorQuery?: string) => {
+    return $api.get('/registrations', {
+        params: {
+            page,
+            pageSize,
+            startTime,
+            endTime,
+            visitingType,
+            status,
+            patientQuery,
+            doctorQuery
+        }
+    })
 }
