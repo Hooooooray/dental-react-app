@@ -31,11 +31,6 @@ interface ListValue {
     value: string;
 }
 
-
-
-
-
-
 const AppointmentSearch = () => {
     const [appointmentSearch] = Form.useForm()
     const [patientValue, setPatientValue] = useState<ListValue | undefined>();

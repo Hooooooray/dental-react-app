@@ -6,7 +6,7 @@ import {
     Collapse,
     CollapseProps,
     DatePicker,
-    Drawer, Flex,
+    Drawer, Dropdown, Flex,
     Form,
     Input, List, Modal, Pagination, Popconfirm, Radio,
     Row,
@@ -19,7 +19,8 @@ import style from './style.module.scss'
 import {onRangeChange, rangePresets} from "../../../components/PublicTimePicker";
 import {SearchProps} from "antd/es/input";
 import {getPatient, searchPatients} from "../../../api/patient";
-import {addRegistration, getMaxRegistrationID, getRegistrations} from "../../../api/registration";
+import {addRegistration, editRegistration, getMaxRegistrationID, getRegistrations} from "../../../api/registration";
+import type {MenuProps} from 'antd';
 import type {ColumnsType} from "antd/es/table";
 import {getEmployees} from "../../../api/employee";
 import dayjs from "dayjs";
@@ -33,6 +34,7 @@ const RegistrationManagement = () => {
     const {message} = App.useApp();
 
     interface RegistrationType {
+        avatar: any;
         key: React.Key;
         id: number;
     }
@@ -41,80 +43,14 @@ const RegistrationManagement = () => {
     const [registrationTablePage, setRegistrationTablePage] = useState(1)
     const [registrationTablePageSize, setRegistrationTablePageSize] = useState(10)
     const [registrationTableTotal, setRegistrationTableTotal] = useState(0)
+    const [registrationConditions] = Form.useForm()
     const [startTime, setStartTime] = useState<any>()
     const [endTime, setEndTime] = useState<any>()
-    const registrationColumns: ColumnsType<RegistrationType> = [
-        {
-            title: '患者',
-            dataIndex: 'patientName',
-            key: 'patientName',
-            width: 90,
-            fixed: 'left',
-        },
-        {
-            title: '性别',
-            dataIndex: 'gender',
-            key: 'gender',
-            width: 90,
-        },
-        {
-            title: '年龄',
-            dataIndex: 'age',
-            key: 'age',
-            width: 90,
-        },
-        {
-            title: '挂号时间',
-            dataIndex: 'createdAt',
-            key: 'createdAt',
-            width: 150,
-        },
-        {
-            title: '挂号状态',
-            dataIndex: 'status',
-            key: 'status',
-            width: 90,
-        },
-        {
-            title: '就诊类型',
-            dataIndex: 'visitingType',
-            key: 'visitingType',
-            width: 90,
-        },
-        {
-            title: '接诊医生',
-            dataIndex: 'doctorName',
-            key: 'doctorName',
-            width: 90,
-        },
-        {
-            title: '患者备注',
-            dataIndex: 'notes',
-            key: 'notes',
-            width: 180,
-        },
+    const [patientQuery, setPatientQuery] = useState()
+    const [doctorQuery, setDoctorQuery] = useState()
+    const [visitingType, setVisitingType] = useState()
+    const [status, setStatus] = useState()
 
-        {
-            title: '操作',
-            key: 'operation',
-            fixed: 'right',
-            width: 130,
-            render: (record) => (
-                <Flex justify="center">
-                    <Space>
-                        <Button onClick={() => {
-                        }}>修改挂号状态</Button>
-                        <Button onClick={() => {
-                        }}>修改就诊类型</Button>
-                    </Space>
-                </Flex>
-            ),
-        },
-    ]
-    const handleRegistrationChangePage = (page: number, pageSize: number) => {
-        setRegistrationTablePage(page)
-        setRegistrationTablePageSize(pageSize)
-    }
     const renderRegistrationTable = () => {
         interface Registration {
             id: number;
@@ -123,7 +59,7 @@ const RegistrationManagement = () => {
             employee?: any
         }
 
-        getRegistrations(registrationTablePage, registrationTablePageSize, startTime, endTime)
+        getRegistrations(registrationTablePage, registrationTablePageSize, startTime, endTime, visitingType, status, patientQuery, doctorQuery)
             .then(response => {
                 if (response.status === 200) {
                     let registrations = response.data.data
@@ -131,7 +67,11 @@ const RegistrationManagement = () => {
                     setRegistrationTableTotal(response.data.total)
                     setRegistrationData(registrations.map((registration: Registration) => {
                         const formattedRegistration = {
-                            patientName: undefined, gender: undefined, age: undefined, doctorName: undefined,
+                            patientName: undefined,
+                            gender: undefined,
+                            age: undefined,
+                            doctorName: undefined,
+                            avatar: undefined,
                             ...registration,
                             key: registration.id,
                         };
@@ -142,9 +82,13 @@ const RegistrationManagement = () => {
                             formattedRegistration.patientName = registration.patient.name
                             formattedRegistration.gender = registration.patient.gender
                             formattedRegistration.age = registration.patient.age
+                            formattedRegistration.id = registration.patient.id
                         }
                         if (registration.employee) {
                             formattedRegistration.doctorName = registration.employee.name
+                        }
+                        if (registration.patient.avatar) {
+                            formattedRegistration.avatar = registration.patient.avatar
                         }
                         return formattedRegistration;
                     }))
@@ -154,9 +98,214 @@ const RegistrationManagement = () => {
                 console.log(error)
             })
     }
+
+    const statusDropdownItems: MenuProps['items'] = [
+        {
+            label: '已挂号',
+            key: 'REGISTERED',
+        },
+        {
+            label: '已就诊',
+            key: 'VISITED',
+        },
+        {
+            label: '已取消',
+            key: 'CANCELLED',
+        },
+    ];
+
+    const visitingTypeDropdownItems: MenuProps['items'] = [
+        {
+            label: '初诊',
+            key: 'FIRST_VISIT',
+        },
+        {
+            label: '复诊',
+            key: 'FOLLOW_UP',
+        },
+        {
+            label: '复查',
+            key: 'RE_EXAMINATION',
+        },
+        {
+            label: '咨询',
+            key: 'CONSULTATION',
+        },
+    ];
+    const registrationColumns: ColumnsType<RegistrationType> = [
+        {
+            title: '客户号',
+            dataIndex: 'patientId',
+            key: 'patientId',
+            width: 90,
+            fixed: 'left'
+        },
+        {
+            title: '患者',
+            dataIndex: 'patientName',
+            key: 'patientName',
+            width: 120,
+            fixed: 'left',
+            render: (text, record) => (
+                <Space>
+                    {record.avatar ? <Avatar shape="square" src={`data:image/jpeg;base64,${record.avatar}`}/> :
+                        <Avatar shape="square" icon={<UserOutlined/>}/>}
+                    {<a onClick={() => {
+                    }}>{text}</a>}
+                </Space>
+            ),
+        },
+        {
+            title: '性别',
+            dataIndex: 'gender',
+            key: 'gender',
+            width: 100,
+        },
+        {
+            title: '年龄',
+            dataIndex: 'age',
+            key: 'age',
+            width: 100,
+        },
+        {
+            title: '挂号状态',
+            dataIndex: 'status',
+            key: 'status',
+            width: 100,
+        },
+        {
+            title: '就诊类型',
+            dataIndex: 'visitingType',
+            key: 'visitingType',
+            width: 100,
+        },
+        {
+            title: '接诊医生',
+            dataIndex: 'doctorName',
+            key: 'doctorName',
+            width: 120,
+        },
+        {
+            title: '挂号时间',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            width: 150,
+        },
+        {
+            title: '患者备注',
+            dataIndex: 'notes',
+            key: 'notes',
+            width: 250,
+        },
+
+        {
+            title: '操作',
+            key: 'operation',
+            fixed: 'right',
+            width: 130,
+            render: (record) => {
+                const handleStatusMenuClick: MenuProps['onClick'] = async (e) => {
+                    console.log(e.key);
+                    console.log(record.key);
+                    try {
+                        const response = await editRegistration({
+                            id: record.key,
+                            status: e.key
+                        })
+                        if (response.status === 200 && response.data.success === true) {
+                            message.success('修改挂号状态成功')
+                            renderRegistrationTable()
+                        }
+                    } catch (e) {
+                        console.log('修改挂号状态失败')
+                        console.log(e)
+                    }
+                };
+
+                const handleVisitingTypeMenuClick: MenuProps['onClick'] = async (e) => {
+                    console.log(e.key);
+                    console.log(record.key);
+                    try {
+                        const response = await editRegistration({
+                            id: record.key,
+                            visitingType: e.key
+                        })
+                        if (response.status === 200 && response.data.success === true) {
+                            message.success('修改就诊类型成功')
+                            renderRegistrationTable()
+                        }
+                    } catch (e) {
+                        console.log('修改就诊类型失败')
+                        console.log(e)
+                    }
+                };
+                return (
+                    <Flex justify="center">
+                        <Space>
+                            <Dropdown menu={{items: statusDropdownItems, onClick: handleStatusMenuClick}} placement="bottom" arrow>
+                                <Button>修改挂号状态</Button>
+                            </Dropdown>
+                            <Dropdown menu={{items: visitingTypeDropdownItems, onClick: handleVisitingTypeMenuClick}} placement="bottom" arrow>
+                                <Button>修改挂号状态</Button>
+                            </Dropdown>
+
+
+                        </Space>
+                    </Flex>
+                )
+            },
+        },
+    ]
+    const handleRegistrationChangePage = (page: number, pageSize: number) => {
+        setRegistrationTablePage(page)
+        setRegistrationTablePageSize(pageSize)
+    }
+
+    const clearRegistrationConditions = () => {
+        registrationConditions.resetFields()
+        setStartTime(undefined)
+        setEndTime(undefined)
+        setPatientQuery(undefined)
+        setDoctorQuery(undefined)
+        setVisitingType(undefined)
+        setStatus(undefined)
+    }
+
+    const searchRegistration = () => {
+        setRegistrationTablePage(1)
+        const data = registrationConditions.getFieldsValue()
+        if (data.createdAt) {
+            setStartTime(data.createdAt[0].toISOString())
+            setEndTime(data.createdAt[1].toISOString())
+        } else {
+            setStartTime(undefined)
+            setEndTime(undefined)
+        }
+        if (data.patientQuery) {
+            setPatientQuery(data.patientQuery)
+        } else {
+            setPatientQuery(undefined)
+        }
+        if (data.doctorQuery) {
+            setDoctorQuery(data.doctorQuery)
+        } else {
+            setDoctorQuery(undefined)
+        }
+        if (data.visitingType) {
+            setVisitingType(data.visitingType)
+        } else {
+            setVisitingType(undefined)
+        }
+        if (data.status) {
+            setStatus(data.status)
+        } else {
+            setStatus(undefined)
+        }
+
+    }
     useEffect(() => {
         renderRegistrationTable()
-    }, [registrationTablePage, registrationTablePageSize, startTime, endTime]);
+    }, [registrationTablePage, registrationTablePageSize, startTime, endTime, visitingType, status, patientQuery, doctorQuery]);
 
     // 实时更新挂号modal里的时间
     const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleString())
@@ -307,6 +456,7 @@ const RegistrationManagement = () => {
                 patientInfoForm.resetFields()
                 setPatientName('')
                 setPatientAvatar('')
+                renderRegistrationTable()
             }
         } catch (e) {
             console.log(e)
@@ -588,10 +738,13 @@ const RegistrationManagement = () => {
                 <Space size="large" style={{marginBottom: 16}}>
                     <Button className={style.buttonSpace} icon={<PlusOutlined/>}
                             onClick={clickAddRegistration}>新增挂号</Button>
-                    <Button className={style.buttonSpace} danger={true}>清空条件</Button>
-                    <Button className={style.buttonSpace} type={"primary"}>搜索</Button>
+                    <Button className={style.buttonSpace} danger={true}
+                            onClick={clearRegistrationConditions}>清空条件</Button>
+                    <Button className={style.buttonSpace} type={"primary"} onClick={searchRegistration}>搜索</Button>
                 </Space>
-                <Form>
+                <Form
+                    form={registrationConditions}
+                >
                     <Row className={style.minFormWidth}>
                         <Space size="large">
                             <Form.Item
@@ -638,8 +791,8 @@ const RegistrationManagement = () => {
                     bordered={true}
                     columns={registrationColumns}
                     dataSource={registrationData}
-                    scroll={{x: 'max-content', y: '60vh'}}
-                    className={style.centerHead}
+                    scroll={{x: 'max-content', y: '64vh'}}
+                    // className={`${style.centerHead} ${style.minFormWidth}`}
                 />
                 <Pagination
                     current={registrationTablePage}

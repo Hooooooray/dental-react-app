@@ -29,3 +29,7 @@ export const getRegistrations = (page?: number, pageSize?: number, startTime?: a
         }
     })
 }
+
+export const editRegistration = (data:any)=>{
+    return $api.post('/registration/edit',data)
+}
