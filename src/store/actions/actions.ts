@@ -15,29 +15,34 @@ export const closePatientDrawer = () => {
     };
 };
 
-export const setPatientEditOn = () =>{
-    return{
-        type:'SET_PATIENT_EDIT_ON'
+export const setPatientEditOn = () => {
+    return {
+        type: 'SET_PATIENT_EDIT_ON'
     }
 }
 
-export const setPatientEditClose = ()=>{
-    return{
-        type:'SET_PATIENT_EDIT_CLOSE'
+export const setPatientEditClose = () => {
+    return {
+        type: 'SET_PATIENT_EDIT_CLOSE'
     }
 }
 
 
-
-export const setPatientObj = (obj:any) =>{
-    return{
-        type:'SET_PATIENT_OBJ',
+export const setPatientObj = (obj: any) => {
+    return {
+        type: 'SET_PATIENT_OBJ',
         payload: obj
     }
 }
 
-export const renderPatient = ()=>{
-    return{
-        type:'RENDER_PATIENT'
+export const renderPatient = () => {
+    return {
+        type: 'RENDER_PATIENT'
+    }
+}
+
+export const renderAppointment = () => {
+    return {
+        type: 'RENDER_APPOINTMENT'
     }
 }

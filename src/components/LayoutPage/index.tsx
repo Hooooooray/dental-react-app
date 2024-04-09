@@ -31,7 +31,13 @@ import {RcFile, UploadChangeParam} from "antd/es/upload";
 import {logoSrc} from "./logoSrc";
 import {useDispatch, useSelector} from "react-redux";
 import {AppState} from "../../store";
-import {closePatientDrawer, openPatientDrawer, renderPatient, setPatientEditClose} from "../../store/actions/actions";
+import {
+    closePatientDrawer,
+    openPatientDrawer,
+    renderAppointment,
+    renderPatient,
+    setPatientEditClose
+} from "../../store/actions/actions";
 import {addAppointment} from "../../api/appointment";
 import dayjs from "dayjs";
 import {DebounceSelect, fetchDoctorList, fetchPatientList} from "../DebounceSelect";
@@ -269,10 +275,10 @@ const LayoutPage = () => {
                 patientId: appointmentFormdata.patient.value,
                 employeeId: appointmentFormdata.employee.value
             }
-            console.log(data)
             const response = await addAppointment(data)
-            if (response.status === 200) {
+            if (response.status === 200 && response.data.success === true) {
                 message.success('新增预约成功')
+                dispatch(renderAppointment())
                 setIsModalOpen(false)
             }
         } catch (error) {
@@ -436,7 +442,7 @@ const LayoutPage = () => {
                         rules={[{required: true}]}
                         label="预约时间" name="appointmentTime">
                         <DatePicker
-                            style={{width:"100%"}}
+                            style={{width: "100%"}}
                             format="YYYY-MM-DD HH:mm:ss"
                             disabledDate={disabledDate}
                             disabledTime={disabledDateTime}

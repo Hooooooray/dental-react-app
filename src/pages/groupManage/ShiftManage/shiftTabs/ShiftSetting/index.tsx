@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {App, Button, Flex, Form, Input, Modal, Popconfirm, Space, Table, TimePicker} from "antd";
-import dayjs, {Dayjs} from "dayjs";
+import dayjs from "dayjs";
 import style from './style.module.scss'
 import {ColumnsType} from "antd/es/table";
 import {addShift, deleteShift, editShift, getShifts} from "../../../../../api/shift";
@@ -23,19 +23,19 @@ const ShiftSetting = () => {
             title: '班次名称',
             dataIndex: 'name',
             key: 'name',
-            width:200
+            width: 200
         },
         {
             title: '开始时间',
             dataIndex: 'startTime',
             key: 'startTime',
-            width:200
+            width: 200
         },
         {
             title: '结束时间',
             dataIndex: 'endTime',
             key: 'endTime',
-            width:200
+            width: 200
         },
         {
             title: '操作',
@@ -169,7 +169,6 @@ const ShiftSetting = () => {
     };
 
     return (
-
         <>
             <Modal title={isShiftAdd ? '新增班次' : '修改班次'} open={isAddShiftOpen} onCancel={() => {
                 setIsAddShiftOpen(false)
@@ -230,7 +229,6 @@ const ShiftSetting = () => {
                        pagination={false}
                        bordered={true}/>
             </div>
-
         </>
     )
 }

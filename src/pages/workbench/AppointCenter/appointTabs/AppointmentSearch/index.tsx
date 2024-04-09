@@ -21,6 +21,8 @@ import {getAppointments} from "../../../../../api/appointment";
 import areaData from "china-area-data/v5/data";
 import style from './style.module.scss'
 import {onRangeChange, rangePresets} from "../../../../../components/PublicTimePicker";
+import {useSelector} from "react-redux";
+import {AppState} from "../../../../../store";
 
 const {Option} = Select;
 const {Content} = Layout;
@@ -115,11 +117,11 @@ const AppointmentSearch = () => {
             }
         })
     }
-
+    const renderAppointment = useSelector((state: AppState) => state.renderAppointment)
     useEffect(() => {
         console.log(('effect'))
         renderAppointmentTable()
-    }, [page, pageSize, startTime, endTime, service, status, patientId, employeeId, sortOrder, sortColumn])
+    }, [page, pageSize, startTime, endTime, service, status, patientId, employeeId, sortOrder, sortColumn, renderAppointment])
 
     interface SearchDataType {
         id: number;

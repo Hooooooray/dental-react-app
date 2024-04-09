@@ -3,9 +3,8 @@ import {App, Button, Drawer, Form, Input, Modal, Pagination, Popconfirm, Space, 
 import {PlusOutlined, QuestionCircleOutlined} from "@ant-design/icons";
 import {ColumnsType} from "antd/es/table";
 import type {DataNode} from 'antd/es/tree';
-import {addRole, deleteRole, getRole, getRoles, modifyPermission} from "../../../../api/role";
-import {deleteEmployee} from "../../../../api/employee";
-import {getPermissions} from "../../../../api/permission";
+import {addRole, deleteRole, getRole, getRoles, modifyPermission} from "../../../../../api/role";
+import {getPermissions} from "../../../../../api/permission";
 
 const RoleTabItem = () => {
     const {message} = App.useApp();

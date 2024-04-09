@@ -22,12 +22,12 @@ import {
     getEmployee,
     getEmployees,
     getMaxEmployeeID
-} from "../../../../api/employee";
+} from "../../../../../api/employee";
 import type {ColumnsType} from 'antd/es/table';
 import dayjs from "dayjs";
 import {useNavigate} from "react-router-dom";
-import {addRole, getRoles} from "../../../../api/role";
-import {editUser, findByEmployee, register} from "../../../../api/user";
+import {addRole, getRoles} from "../../../../../api/role";
+import {editUser, findByEmployee, register} from "../../../../../api/user";
 
 
 const EmployeeTabItem = () => {
@@ -288,9 +288,9 @@ const EmployeeTabItem = () => {
         employeeForm.resetFields();
         setEmployeeOpen(false);
     };
-    const addDepartment = () => {
-        console.log('click addDepartment')
-    }
+    // const addDepartment = () => {
+    //     console.log('click addDepartment')
+    // }
 
     // 表单确认
     const onEmployeeFinish = async () => {
@@ -423,7 +423,7 @@ const EmployeeTabItem = () => {
         <>
             <div style={{padding: '16px 16px 0 16px'}}>
                 <Space size="large" style={{marginBottom: 16}}>
-                    <Button icon={<PlusOutlined/>} onClick={addDepartment}>新增部门</Button>
+                    {/*<Button icon={<PlusOutlined/>} onClick={addDepartment}>新增部门</Button>*/}
                     <Button icon={<PlusOutlined/>} onClick={clickAddEmployee}>新增员工</Button>
                 </Space>
                 <Modal title="配置账号信息" open={isAccountOpen} onOk={() => {

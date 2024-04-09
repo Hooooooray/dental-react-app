@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Tabs } from 'antd';
 import AppointmentView from './appointTabs/AppointmentView';
 import AppointmentSearch from './appointTabs/AppointmentSearch';
-import DoctorShift from './appointTabs/DoctorShift';
-import ShiftSetting from './appointTabs/ShiftSetting';
 
 const AppointCenter = () => {
     const [activeKey, setActiveKey] = useState('1'); // 用于追踪当前激活的标签页key
@@ -23,16 +21,6 @@ const AppointCenter = () => {
             key: '2',
             label: '预约查询',
             children: <AppointmentSearch key={`appointment-search-${activeKey}`} />,
-        },
-        {
-            key: '3',
-            label: '员工排班',
-            children: <DoctorShift key={`doctor-shift-${activeKey}`} />,
-        },
-        {
-            key: '4',
-            label: '班次设置',
-            children: <ShiftSetting key={`shift-setting-${activeKey}`} />,
         },
     ];
 

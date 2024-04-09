@@ -7,6 +7,7 @@ export interface AppState {
     isPatientEdit: boolean;
     patientObj: object;
     renderPatient: number;
+    renderAppointment: number;
 }
 
 
@@ -19,6 +20,7 @@ type AppAction =
     | { type: 'SET_PATIENT_EDIT_CLOSE' }
     | { type: 'SET_PATIENT_OBJ'; payload: object }
     | { type: 'RENDER_PATIENT' }
+    | { type: 'RENDER_APPOINTMENT' }
 
 const ls = new SecureLS({encodingType: 'aes'});
 
@@ -32,6 +34,7 @@ const reducer = (state: AppState = {
     isPatientEdit: false,
     patientObj: {},
     renderPatient: 1,
+    renderAppointment: 1,
 }, action: AppAction): AppState => {
     switch (action.type) {
         case 'UPDATE_PERMISSIONS':
@@ -47,7 +50,9 @@ const reducer = (state: AppState = {
         case 'SET_PATIENT_OBJ':
             return {...state, patientObj: action.payload}
         case 'RENDER_PATIENT':
-            return {...state, renderPatient: state.renderPatient+1}
+            return {...state, renderPatient: state.renderPatient + 1}
+        case 'RENDER_APPOINTMENT':
+            return {...state, renderAppointment: state.renderAppointment + 1}
         // 处理其他 action 类型或默认情况
         default:
             return state;

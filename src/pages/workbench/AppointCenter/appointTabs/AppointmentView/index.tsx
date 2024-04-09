@@ -6,6 +6,8 @@ import "../TableComponent.scss"
 import dayjs from "dayjs";
 import {getAppointments} from "../../../../../api/appointment";
 import style from './style.module.scss'
+import {useSelector} from "react-redux";
+import {AppState} from "../../../../../store";
 
 const {Content} = Layout
 const {Sider, Header} = Layout
@@ -51,7 +53,6 @@ const AppointmentView = () => {
         }
     ];
 
-
     // 创建包含144个元素的数据数组
     const defaultData = Array.from({length: 144}, (_, index) => ({
         key: index,
@@ -70,6 +71,10 @@ const AppointmentView = () => {
         if (date) {
             setCurrentWeek(dayjs(date).startOf('week'));
         }
+    };
+
+    const handleCurrentWeekClick = () => {
+        setCurrentWeek(dayjs().startOf('week'));
     };
 
     const fetchAppointments = async (startTime: any, endTime: any) => {
@@ -121,17 +126,15 @@ const AppointmentView = () => {
                     ...thisData[segmentNumber],
                     [columnKey]: `${appointment.employee.name}-${appointment.patient.name}-${appointment.status}`
                 };
-
-
             }
         }
         // @ts-ignore
         setData(thisData)
-        // console.log(thisData)
     }
 
     // 设置初始日期为当前周的开始（星期一）
     const [currentWeek, setCurrentWeek] = useState(dayjs().startOf('week'));
+    const renderAppointment = useSelector((state: AppState) => state.renderAppointment)
 
     // 当组件加载时，更新日期数组
     useEffect(() => {
@@ -145,14 +148,15 @@ const AppointmentView = () => {
         const startTime = currentWeek.add(1, "day").toISOString()
         const endTime = currentWeek.add(8, "day").toISOString()
         fetchAppointments(startTime, endTime)
-    }, [currentWeek]);
+    }, [currentWeek, renderAppointment]);
+
 
     return (
         <div style={{minWidth: "1280px"}}>
             <Flex style={{height: "52px", padding: "10px 5px"}}>
                 <Space>
                     <DatePicker onChange={onChange} picker="week"/>
-                    <Button>本周</Button>
+                    <Button onClick={handleCurrentWeekClick}>本周</Button>
                 </Space>
             </Flex>
             <Header style={{height: "32px", background: "#F5F5F5", padding: 0}}>
@@ -187,8 +191,8 @@ const AppointmentView = () => {
             <Layout style={{
                 height: 'calc(100vh - 715px)',
                 display: "flex",
-                flexDirection:"row",
-                padding:"5px"
+                flexDirection: "row",
+                padding: "5px"
             }}>
                 <div>
                     <Alert message="视图格式：员工-患者-预约状态" type="success"/>

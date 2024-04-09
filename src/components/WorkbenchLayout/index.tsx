@@ -24,7 +24,6 @@ function getItem(
 const items: MenuItem[] = [
     getItem('预约中心', '/appointCenter',),
     getItem('患者中心', '/patientCenter',),
-    getItem('患者管理', '/patientManage',),
     getItem('挂号管理','/registrationManagement')
 ];
 

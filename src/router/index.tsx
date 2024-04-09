@@ -10,12 +10,11 @@ import {getPermissions} from "../api/permission";
 import WorkbenchLayout from "../components/WorkbenchLayout";
 import AppointCenter from "../pages/workbench/AppointCenter";
 import PatientCenter from "../pages/workbench/PatientCenter";
-import PatientManage from "../pages/workbench/PatientManage";
 import GroupManageLayout from "../components/GroupManageLayout";
 import EmployeeManage from "../pages/groupManage/EmployeeManage";
 import PermissionConfiguration from "../pages/groupManage/PermissionConfiguration";
-import ProjectManage from "../pages/groupManage/ProjectManage";
 import RegistrationManagement from "../pages/workbench/RegistrationManagement";
+import ShiftManage from "../pages/groupManage/ShiftManage";
 
 type RouterConfigType = RouteObject[];
 const RouterView = () => {
@@ -80,11 +79,10 @@ const RouterView = () => {
                     'WorkbenchLayout': WorkbenchLayout,
                     'AppointCenter': AppointCenter,
                     'PatientCenter': PatientCenter,
-                    'PatientManage': PatientManage,
                     'GroupManageLayout': GroupManageLayout,
                     'EmployeeManage': EmployeeManage,
                     'PermissionConfiguration': PermissionConfiguration,
-                    'ProjectManage': ProjectManage,
+                    'ShiftManage': ShiftManage,
                     'RegistrationManagement':RegistrationManagement,
                 };
                 const dynamicRoutes = filterRoutesByPermissions(permissionsData, userPermissions).map(route => {

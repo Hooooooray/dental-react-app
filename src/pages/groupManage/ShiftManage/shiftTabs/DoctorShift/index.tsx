@@ -1,9 +1,8 @@
 import React, {useEffect, useState} from "react";
-import {App, Button, Checkbox, DatePicker, Flex, Pagination, Radio, RadioChangeEvent, Space, Table, Layout} from "antd";
+import {App, Button, Checkbox, Flex, Pagination, Radio, RadioChangeEvent, Space, Table, Layout} from "antd";
 import {ColumnsType} from "antd/es/table";
 import {getShifts} from "../../../../../api/shift";
 import style from './style.module.scss'
-import {getEmployees} from "../../../../../api/employee";
 import {batchAddOrEditDoctorShifts, getDoctorShifts} from "../../../../../api/doctorShift";
 
 const {Header, Footer, Sider, Content} = Layout;
@@ -202,7 +201,7 @@ const DoctorShift = () => {
     return (
         <>
             <Content style={{padding: "10px"}}>
-                <Flex style={{marginBottom:"10px"}}>
+                <Flex style={{marginBottom: "10px"}}>
                     <Space>
                         <Radio.Group defaultValue={"DOCTOR"} buttonStyle="solid" onChange={onChange}>
                             <Radio.Button value="DOCTOR">医生</Radio.Button>
