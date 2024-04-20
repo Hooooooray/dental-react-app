@@ -44,6 +44,10 @@ function App() {
                         Alert: {
                             defaultPadding:"4px 12px"
                         },
+                        List:{
+                            headerBg:"#F5F5F5",
+                            borderRadiusLG:0
+                        }
                     },
                 }}
             >

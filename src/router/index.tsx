@@ -15,6 +15,7 @@ import EmployeeManage from "../pages/groupManage/EmployeeManage";
 import PermissionConfiguration from "../pages/groupManage/PermissionConfiguration";
 import RegistrationManagement from "../pages/workbench/RegistrationManagement";
 import ShiftManage from "../pages/groupManage/ShiftManage";
+import CategoryManage from "../pages/groupManage/CategoryManage";
 
 type RouterConfigType = RouteObject[];
 const RouterView = () => {
@@ -84,6 +85,7 @@ const RouterView = () => {
                     'PermissionConfiguration': PermissionConfiguration,
                     'ShiftManage': ShiftManage,
                     'RegistrationManagement':RegistrationManagement,
+                    'CategoryManage':CategoryManage,
                 };
                 const dynamicRoutes = filterRoutesByPermissions(permissionsData, userPermissions).map(route => {
                     const component = componentsMap[route.component];

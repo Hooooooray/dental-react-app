@@ -1,0 +1,17 @@
+.rowPadding{
+  padding: 5px;
+}
+.colPadding{
+  padding: 5px;
+}
+.ListItem {
+  cursor: pointer;
+  &:hover {
+    background-color: #f0f0f0;
+  }
+}
+.activeItem {
+  background-color: #6B79DB;
+  color: #fff!important;
+  font-weight: bold;
+}
