@@ -122,7 +122,7 @@ const LoginPage = () => {
             children: <>
                 <Form
                     name="basic"
-                    style={{width: "320px", marginTop: "20px"}}
+                    style={{width: "360px", marginTop: "20px"}}
                     form={loginForm}
                     wrapperCol={{span: 24}}
                     initialValues={{remember: true}}
@@ -159,7 +159,7 @@ const LoginPage = () => {
             children: <>
                 <Form
                     name="basic"
-                    style={{width: "320px", marginTop: "20px"}}
+                    style={{width: "360px", marginTop: "20px"}}
                     form={smsLoginForm}
                     wrapperCol={{span: 24}}
                     initialValues={{remember: true}}
